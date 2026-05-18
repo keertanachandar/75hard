@@ -749,6 +749,14 @@ git commit -m "feat: show date in streak-dot tooltips"
 
 ---
 
+## Deployment note
+
+The PWA service worker (`service-worker.js`) caches the app shell (`index.html`,
+`js/*.js`, `css/styles.css`) with a versioned cache name and serves it
+cache-first. Because this feature changes those cached assets, the `CACHE`
+constant must be bumped so installed clients evict the stale cache and pick up
+the new code. This was done as part of Task 5 (`75hard-v1` → `75hard-v2`).
+
 ## After all tasks — user verification
 
 Subagents could only verify syntax and that the app loads. The user should then sign in and confirm, in the Firestore console and the app:
