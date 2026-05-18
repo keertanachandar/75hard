@@ -81,7 +81,7 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
       console.error('Save failed:', err);
       document.body.classList.add('save-error');
       setTimeout(() => document.body.classList.remove('save-error'), 4000);
-      render();
+      render().catch((err2) => console.error('Recovery render failed:', err2));
     });
   }
 
