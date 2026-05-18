@@ -1,4 +1,4 @@
-import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes, setToken, logAppOpen } from './data.js';
+import { getDay, getAllDays, getTokens, setCheck, setWorkoutDone, setWater, setNotes, setItemNote, setToken, logAppOpen } from './data.js';
 import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
 
   // ── Constants ──────────────────────────────────────────
@@ -362,7 +362,7 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
     if (next) spawnBurst(item);
     updateDailyProgress();
     renderStreakBar();
-    persist(setWorkout(dateKey(viewDate), slot, currentDay.workouts[slot]));
+    persist(setWorkoutDone(dateKey(viewDate), slot, next));
   }
 
   // ── Notes autosave ─────────────────────────────────────
@@ -440,7 +440,7 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
         clearTimeout(t);
         currentDay.workouts[slot].note = noteEl.value;
         t = setTimeout(() => {
-          persist(setWorkout(dateKey(viewDate), slot, currentDay.workouts[slot]));
+          persist(setItemNote(dateKey(viewDate), 'workout' + slot, noteEl.value));
         }, 500);
       });
     });

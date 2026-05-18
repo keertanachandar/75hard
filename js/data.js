@@ -94,10 +94,28 @@ export async function setCheck(dateKey, key, value, via = 'direct') {
   }, { merge: true });
 }
 
-export async function setWorkout(dateKey, slot, { done, note }) {
-  await setDoc(dayRef(dateKey),
-    { workouts: { [slot]: { done, note } }, updatedAt: serverTimestamp() },
-    { merge: true });
+export async function setWorkoutDone(dateKey, slot, done) {
+  await setDoc(dayRef(dateKey), {
+    workouts: { [slot]: { done } },
+    events: arrayUnion(ev('check', dateKey, { key: 'workout' + slot, value: done, via: 'direct' })),
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+}
+
+// Per-item note. Workout keys route into workouts.{slot}.note; everything
+// else into itemNotes.{key}. The note event is coalesced (see shouldLogNote).
+export async function setItemNote(dateKey, key, text) {
+  const payload = { updatedAt: serverTimestamp() };
+  if (key === 'workout1' || key === 'workout2') {
+    const slot = key === 'workout1' ? 1 : 2;
+    payload.workouts = { [slot]: { note: text } };
+  } else {
+    payload.itemNotes = { [key]: text };
+  }
+  if (shouldLogNote(dateKey, key)) {
+    payload.events = arrayUnion(ev('note', dateKey, { target: key }));
+  }
+  await setDoc(dayRef(dateKey), payload, { merge: true });
 }
 
 export async function setWater(dateKey, total, delta) {
