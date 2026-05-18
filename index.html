@@ -9,6 +9,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0f0e0c">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="icon" type="image/png" href="icons/apple-touch-icon.png">
 </head>
 <body>
 <div class="signin-gate" id="signinGate">
@@ -59,8 +61,8 @@
       <div class="current-date" id="currentDateDisplay"></div>
       <div class="day-info" id="dayInfoDisplay"></div>
     </div>
-    <button class="today-btn" id="goToday">Today</button>
     <button class="date-nav-btn" id="nextDay">→</button>
+    <button class="today-btn" id="goToday">Today</button>
   </div>
 
   <!-- Tabs -->
@@ -181,7 +183,7 @@
       </div>
     </div>
 
-    <div class="check-group">
+    <div class="check-group" id="notesGroup">
       <div class="section-header">Notes</div>
       <textarea class="notes-area" id="notesArea" placeholder="How did today go? Any cravings, wins, struggles..."></textarea>
     </div>
