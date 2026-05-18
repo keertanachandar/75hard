@@ -1,4 +1,5 @@
 import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes, setToken } from './data.js';
+import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
 
   // ── Constants ──────────────────────────────────────────
   const START         = new Date('2026-05-18T00:00:00'); // Day 1
@@ -452,5 +453,23 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
   }
 
   // ── Init ───────────────────────────────────────────────
+  const gate = document.getElementById('signinGate');
+  const appRoot = document.getElementById('appRoot');
+
+  document.getElementById('signinBtn').addEventListener('click', () => {
+    signIn().catch((e) => alert('Sign-in failed: ' + e.message));
+  });
+  document.getElementById('signoutBtn').addEventListener('click', () => signOut());
+
   wireEvents();
-  render();
+
+  onAuthChange((user) => {
+    if (user) {
+      gate.classList.remove('visible');
+      appRoot.classList.add('visible');
+      render();
+    } else {
+      appRoot.classList.remove('visible');
+      gate.classList.add('visible');
+    }
+  });

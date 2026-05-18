@@ -821,3 +821,29 @@
     transition: all 0.15s;
   }
   .mfp-link:hover { border-color: var(--accent2); }
+
+  .signin-gate {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+  }
+  .signin-gate.visible { display: flex; }
+  .signin-card { text-align: center; padding: 32px; max-width: 320px; }
+  .signin-card h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 44px; font-weight: 900; color: var(--accent);
+  }
+  .signin-card p { color: var(--text-muted); font-size: 12px; margin: 12px 0 24px; }
+  .signin-card button, .signout-btn {
+    background: var(--bg3); border: 1px solid var(--border2);
+    color: var(--text); font-family: 'DM Mono', monospace;
+    font-size: 12px; padding: 10px 18px; border-radius: 5px; cursor: pointer;
+  }
+  .signin-card button:hover, .signout-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .signout-btn { font-size: 9px; padding: 5px 10px; align-self: flex-start; }
+  #appRoot { display: none; }
+  #appRoot.visible { display: block; }
