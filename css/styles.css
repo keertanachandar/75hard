@@ -716,6 +716,21 @@
     z-index: 10;
   }
 
+  /* Workout note input */
+  .workout-note {
+    width: 100%;
+    margin-top: 8px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 6px 8px;
+  }
+  .workout-note:focus { outline: none; border-color: var(--accent); }
+  .workout-note::placeholder { color: var(--text-dim); }
+
   /* Notes */
   .notes-area {
     width: 100%;

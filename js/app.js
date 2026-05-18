@@ -58,7 +58,14 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
     { label: 'Goal reached', oz: 100 },
   ];
 
-  const CHECKLIST_KEYS = ['water_wake','workout1','photo','breakfast','lunch','snack','workout2','dinner','sweet','water_total','reading'];
+  const CHECKLIST_KEYS = ['water_wake','photo','breakfast','lunch','snack','dinner','sweet','water_total','reading']; // 9
+  const DAILY_TOTAL = 11; // 9 checks + 2 workout done flags
+
+  function dayCompletedCount(day) {
+    const checks = Object.values(day.checks || {}).filter(Boolean).length;
+    const w = day.workouts || { 1: {}, 2: {} };
+    return checks + (w[1] && w[1].done ? 1 : 0) + (w[2] && w[2].done ? 1 : 0);
+  }
 
   // ── State ──────────────────────────────────────────────
   let viewDate = new Date();
@@ -88,9 +95,9 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
 
   // Recompute the daily progress bar from currentDay.
   function updateDailyProgress() {
-    const checked = CHECKLIST_KEYS.filter((k) => currentDay.checks[k]).length;
+    const checked = dayCompletedCount(currentDay);
     document.getElementById('dpChecked').textContent = checked;
-    document.getElementById('dpFill').style.width = (checked / CHECKLIST_KEYS.length * 100) + '%';
+    document.getElementById('dpFill').style.width = (checked / DAILY_TOTAL * 100) + '%';
   }
 
   // ── Helpers ────────────────────────────────────────────
@@ -152,8 +159,7 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
     const checkDate = new Date(today);
     while (checkDate >= START) {
       const dd = allDays[dateKey(checkDate)] || { checks: {} };
-      const checked = Object.values(dd.checks).filter(Boolean).length;
-      if (checked === CHECKLIST_KEYS.length) {
+      if (dayCompletedCount(dd) === DAILY_TOTAL) {
         completedCount++;
         if (checkDate <= today) streak++;
       } else if (checkDate < today) {
@@ -190,6 +196,13 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
       if (!el) return;
       if (currentDay.checks[key]) { el.classList.add('checked'); }
       else { el.classList.remove('checked'); }
+    });
+
+    // Render workout done state and notes
+    [1, 2].forEach((s) => {
+      const item = document.querySelector(`.workout-item[data-workout="${s}"]`);
+      item.classList.toggle('checked', !!currentDay.workouts[s].done);
+      document.getElementById('w' + s + 'note').value = currentDay.workouts[s].note || '';
     });
 
     // Progress bar
@@ -250,11 +263,12 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
       const d = new Date(START);
       d.setDate(d.getDate() + i);
       const dd = allDays[dateKey(d)] || { checks: {} };
-      const checked = Object.values(dd.checks).filter(Boolean).length;
+      const completed = dayCompletedCount(dd) === DAILY_TOTAL;
+      const partial = !completed && Object.values(dd.checks || {}).filter(Boolean).length > 0;
       let cls = '';
       if (d.getTime() === today.getTime()) cls += ' today';
-      if (checked === CHECKLIST_KEYS.length) cls += ' complete';
-      else if (checked > 0) cls += ' partial';
+      if (completed) cls += ' complete';
+      else if (partial) cls += ' partial';
       const isInRange = d <= today;
       html += `<div class="streak-dot${cls}" data-day="Day ${i+1}" style="opacity:${isInRange ? 1 : 0.3}"></div>`;
     }
@@ -262,7 +276,7 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
       const d = new Date(CHALLENGE_END);
       d.setDate(d.getDate() + i + 1);
       const dd = allDays[dateKey(d)] || { checks: {} };
-      const done = Object.values(dd.checks).filter(Boolean).length === CHECKLIST_KEYS.length;
+      const done = dayCompletedCount(dd) === DAILY_TOTAL;
       const isToday = d.getTime() === today.getTime();
       html += `<div class="streak-dot buffer${done ? ' complete' : ''}${isToday ? ' today' : ''}" data-day="Buffer +${i+1}"></div>`;
     }
@@ -338,6 +352,16 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
     setTimeout(() => burst.remove(), 700);
   }
 
+  function toggleWorkout(slot, item) {
+    const next = !currentDay.workouts[slot].done;
+    currentDay.workouts[slot].done = next;
+    item.classList.toggle('checked', next);
+    if (next) spawnBurst(item);
+    updateDailyProgress();
+    renderStreakBar();
+    persist(setWorkout(dateKey(viewDate), slot, currentDay.workouts[slot]));
+  }
+
   // ── Notes autosave ─────────────────────────────────────
   let notesTimer;
   document.getElementById('notesArea').addEventListener('input', function() {
@@ -394,6 +418,28 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
     document.getElementById('tokenRow').addEventListener('click', (e) => {
       const card = e.target.closest('[data-token-index]');
       if (card) toggleToken(Number(card.dataset.tokenIndex));
+    });
+
+    // Workout item wiring
+    document.querySelectorAll('.workout-item[data-workout]').forEach((item) => {
+      const slot = Number(item.dataset.workout);
+      const noteEl = document.getElementById('w' + slot + 'note');
+      // Toggle done — but not when the click originated in the text input
+      item.addEventListener('click', (e) => {
+        if (e.target === noteEl) return;
+        if (isFuture(viewDate)) return;
+        toggleWorkout(slot, item);
+      });
+      // Debounced note save
+      let t;
+      noteEl.addEventListener('input', () => {
+        if (isFuture(viewDate)) return;
+        clearTimeout(t);
+        currentDay.workouts[slot].note = noteEl.value;
+        t = setTimeout(() => {
+          persist(setWorkout(dateKey(viewDate), slot, currentDay.workouts[slot]));
+        }, 500);
+      });
     });
 
     // Water buttons
