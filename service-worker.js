@@ -1,3 +1,5 @@
+// Bump this version string whenever any cached asset changes, so the
+// activate handler purges the old cache and users get the new files.
 const CACHE = '75hard-v1';
 const ASSETS = [
   './', './index.html', './css/styles.css',
