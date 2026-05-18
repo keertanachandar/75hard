@@ -445,10 +445,14 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
   // ── Notes autosave ─────────────────────────────────────
   let notesTimer;
   document.getElementById('notesArea').addEventListener('input', function() {
+    // Snapshot the date + text now: a debounced save that fires after the user
+    // navigates to another day must still write to the day they typed on.
+    const dk = dateKey(viewDate);
+    const text = this.value;
+    currentDay.notes = text;
     clearTimeout(notesTimer);
     notesTimer = setTimeout(() => {
-      currentDay.notes = this.value;
-      persist(setNotes(dateKey(viewDate), this.value));
+      persist(setNotes(dk, text));
     }, 500);
   });
 
@@ -536,14 +540,18 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
       input.addEventListener('input', () => {
         if (isFuture(viewDate)) return;
         const key = itemKey(item);
-        item.classList.toggle('has-note', input.value.length > 0);
+        // Snapshot the date + text now: a debounced save that fires after the
+        // user navigates to another day must still write to the day they typed on.
+        const dk = dateKey(viewDate);
+        const text = input.value;
+        item.classList.toggle('has-note', text.length > 0);
         // optimistic local update (mirrors the day-note autosave)
-        if (key === 'workout1') currentDay.workouts[1].note = input.value;
-        else if (key === 'workout2') currentDay.workouts[2].note = input.value;
-        else currentDay.itemNotes[key] = input.value;
+        if (key === 'workout1') currentDay.workouts[1].note = text;
+        else if (key === 'workout2') currentDay.workouts[2].note = text;
+        else currentDay.itemNotes[key] = text;
         clearTimeout(t);
         t = setTimeout(() => {
-          persist(setItemNote(dateKey(viewDate), key, input.value));
+          persist(setItemNote(dk, key, text));
         }, 500);
       });
     });
