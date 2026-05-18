@@ -1,8 +1,19 @@
-// js/data.js — storage layer. Phase 1: localStorage. Phase 3: swapped to Firestore.
-// The exported contract (signatures + DayData shape) does NOT change between phases.
+// js/data.js — Firestore-backed storage layer. Same contract as the localStorage version.
+import { db } from './config.js';
+import { getCurrentUser } from './auth.js';
+import {
+  doc, getDoc, getDocs, collection, setDoc, serverTimestamp
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-const DAY_PREFIX = '75h_day_';
-const TOKENS_KEY = '75h_tokens';
+function uid() {
+  const u = getCurrentUser();
+  if (!u) throw new Error('Not signed in');
+  return u.uid;
+}
+
+function dayRef(dateKey) {
+  return doc(db, 'users', uid(), 'days', dateKey);
+}
 
 function defaultDay() {
   return {
@@ -18,70 +29,57 @@ function normalizeDay(d) {
   return {
     checks: d.checks || {},
     workouts: {
-      1: { done: false, note: '', ...(w[1] || w['1']) },
-      2: { done: false, note: '', ...(w[2] || w['2']) },
+      1: { done: false, note: '', ...(w['1']) },
+      2: { done: false, note: '', ...(w['2']) },
     },
     water: d.water || 0,
     notes: d.notes || '',
   };
 }
 
-function readDay(dateKey) {
-  const raw = localStorage.getItem(DAY_PREFIX + dateKey);
-  return raw ? normalizeDay(JSON.parse(raw)) : defaultDay();
-}
-
-function writeDay(dateKey, day) {
-  localStorage.setItem(DAY_PREFIX + dateKey, JSON.stringify(day));
-}
-
 export async function getDay(dateKey) {
-  return readDay(dateKey);
+  const snap = await getDoc(dayRef(dateKey));
+  return snap.exists() ? normalizeDay(snap.data()) : defaultDay();
 }
 
 export async function getAllDays() {
+  const snap = await getDocs(collection(db, 'users', uid(), 'days'));
   const out = {};
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (k && k.startsWith(DAY_PREFIX)) {
-      const dateKey = k.slice(DAY_PREFIX.length);
-      out[dateKey] = readDay(dateKey);
-    }
-  }
+  snap.forEach((d) => { out[d.id] = normalizeDay(d.data()); });
   return out;
 }
 
 export async function getTokens() {
-  const raw = localStorage.getItem(TOKENS_KEY);
-  return raw ? JSON.parse(raw) : [false, false, false];
+  const snap = await getDoc(doc(db, 'users', uid(), 'meta', 'state'));
+  return snap.exists() && snap.data().tokens ? snap.data().tokens : [false, false, false];
 }
 
 export async function setCheck(dateKey, key, value) {
-  const day = readDay(dateKey);
-  day.checks[key] = value;
-  writeDay(dateKey, day);
+  await setDoc(dayRef(dateKey),
+    { checks: { [key]: value }, updatedAt: serverTimestamp() },
+    { merge: true });
 }
 
 export async function setWorkout(dateKey, slot, { done, note }) {
-  const day = readDay(dateKey);
-  day.workouts[slot] = { done, note };
-  writeDay(dateKey, day);
+  await setDoc(dayRef(dateKey),
+    { workouts: { [slot]: { done, note } }, updatedAt: serverTimestamp() },
+    { merge: true });
 }
 
 export async function setWater(dateKey, oz) {
-  const day = readDay(dateKey);
-  day.water = oz;
-  writeDay(dateKey, day);
+  await setDoc(dayRef(dateKey),
+    { water: oz, updatedAt: serverTimestamp() },
+    { merge: true });
 }
 
 export async function setNotes(dateKey, text) {
-  const day = readDay(dateKey);
-  day.notes = text;
-  writeDay(dateKey, day);
+  await setDoc(dayRef(dateKey),
+    { notes: text, updatedAt: serverTimestamp() },
+    { merge: true });
 }
 
 export async function setToken(index, used) {
   const tokens = await getTokens();
   tokens[index] = used;
-  localStorage.setItem(TOKENS_KEY, JSON.stringify(tokens));
+  await setDoc(doc(db, 'users', uid(), 'meta', 'state'), { tokens }, { merge: true });
 }
