@@ -126,6 +126,18 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
     return d > today;
   }
 
+  // The note key for a check-item: data-key, or workoutN for workout items.
+  function itemKey(el) {
+    return el.dataset.key || ('workout' + el.dataset.workout);
+  }
+
+  // Current saved note text for an item key.
+  function itemNoteValue(key) {
+    if (key === 'workout1') return currentDay.workouts[1].note || '';
+    if (key === 'workout2') return currentDay.workouts[2].note || '';
+    return (currentDay.itemNotes && currentDay.itemNotes[key]) || '';
+  }
+
   // ── Render ─────────────────────────────────────────────
   async function render() {
     const key = dateKey(viewDate);
@@ -199,13 +211,21 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
       else { el.classList.remove('checked'); }
     });
 
-    // Render workout done state and notes
+    // Render workout done state
     [1, 2].forEach((s) => {
       const item = document.querySelector(`.workout-item[data-workout="${s}"]`);
       if (!item) return;
       item.classList.toggle('checked', !!currentDay.workouts[s].done);
-      const noteEl = document.getElementById('w' + s + 'note');
-      if (noteEl) noteEl.value = currentDay.workouts[s].note || '';
+    });
+
+    // Per-item notes: fill each input, expand items that already have a note.
+    document.querySelectorAll('#panel-today .check-item').forEach((item) => {
+      const input = item.querySelector('.item-note-input');
+      if (!input) return;
+      const note = itemNoteValue(itemKey(item));
+      input.value = note;
+      item.classList.toggle('has-note', note.length > 0);
+      item.classList.toggle('note-open', note.length > 0);
     });
 
     // Progress bar
@@ -407,6 +427,7 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
   function wireEvents() {
     // Delegated checklist toggles (Today panel)
     document.getElementById('panel-today').addEventListener('click', (e) => {
+      if (e.target.closest('.item-note-input') || e.target.closest('.note-toggle')) return;
       const item = e.target.closest('.check-item[data-key]');
       if (item) toggle(item);
     });
@@ -433,16 +454,6 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
         if (isFuture(viewDate)) return;
         toggleWorkout(slot, item);
       });
-      // Debounced note save
-      let t;
-      noteEl.addEventListener('input', () => {
-        if (isFuture(viewDate)) return;
-        clearTimeout(t);
-        currentDay.workouts[slot].note = noteEl.value;
-        t = setTimeout(() => {
-          persist(setItemNote(dateKey(viewDate), 'workout' + slot, noteEl.value));
-        }, 500);
-      });
     });
 
     // Water buttons
@@ -450,6 +461,33 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
       btn.addEventListener('click', () => addWater(Number(btn.dataset.water)));
     });
     document.getElementById('waterReset').addEventListener('click', resetWater);
+
+    // Per-item note: expand toggle + debounced autosave (covers all check-items,
+    // including the workout rows, since they also carry the check-item class).
+    document.querySelectorAll('#panel-today .check-item').forEach((item) => {
+      const toggleBtn = item.querySelector('.note-toggle');
+      const input = item.querySelector('.item-note-input');
+      if (!toggleBtn || !input) return;
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        item.classList.toggle('note-open');
+        if (item.classList.contains('note-open')) input.focus();
+      });
+      let t;
+      input.addEventListener('input', () => {
+        if (isFuture(viewDate)) return;
+        const key = itemKey(item);
+        item.classList.toggle('has-note', input.value.length > 0);
+        // optimistic local update (mirrors the day-note autosave)
+        if (key === 'workout1') currentDay.workouts[1].note = input.value;
+        else if (key === 'workout2') currentDay.workouts[2].note = input.value;
+        else currentDay.itemNotes[key] = input.value;
+        clearTimeout(t);
+        t = setTimeout(() => {
+          persist(setItemNote(dateKey(viewDate), key, input.value));
+        }, 500);
+      });
+    });
   }
 
   // ── Init ───────────────────────────────────────────────

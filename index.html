@@ -88,7 +88,8 @@
       <div class="check-item" data-key="water_wake">
         <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
         <span class="check-emoji">💧</span>
-        <div class="check-label">32oz water on wakeup<span class="sub">Before coffee — this is non-negotiable</span></div>
+        <div class="check-label">32oz water on wakeup<span class="sub">Before coffee — this is non-negotiable</span><input type="text" class="item-note-input" placeholder="Add a note…"></div>
+        <button class="note-toggle" type="button" aria-label="Add note">📝</button>
       </div>
       <div class="check-item workout-item" data-workout="1">
         <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
@@ -96,18 +97,21 @@
         <div class="check-label">
           <span id="w1label">Workout #1 — 45 min</span>
           <span class="sub" id="w1sub">Indoor · See workout tab for today's type</span>
-          <input type="text" class="workout-note" id="w1note" placeholder="What did you actually do?">
+          <input type="text" class="item-note-input" id="w1note" placeholder="What did you actually do?">
         </div>
+        <button class="note-toggle" type="button" aria-label="Add note">📝</button>
       </div>
       <div class="check-item" data-key="photo">
         <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
         <span class="check-emoji">📸</span>
-        <div class="check-label">Progress photo<span class="sub">After morning shower · same lighting</span></div>
+        <div class="check-label">Progress photo<span class="sub">After morning shower · same lighting</span><input type="text" class="item-note-input" placeholder="Add a note…"></div>
+        <button class="note-toggle" type="button" aria-label="Add note">📝</button>
       </div>
       <div class="check-item" data-key="breakfast">
         <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
         <span class="check-emoji">🍳</span>
-        <div class="check-label">Breakfast logged in MFP<span class="sub">2 eggs + ¼ cup egg whites + veg + ¾ cup Greek yogurt + ½ cup berries</span></div>
+        <div class="check-label">Breakfast logged in MFP<span class="sub">2 eggs + ¼ cup egg whites + veg + ¾ cup Greek yogurt + ½ cup berries</span><input type="text" class="item-note-input" placeholder="Add a note…"></div>
+        <button class="note-toggle" type="button" aria-label="Add note">📝</button>
       </div>
     </div>
 
@@ -116,12 +120,14 @@
       <div class="check-item" data-key="lunch">
         <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
         <span class="check-emoji">🥗</span>
-        <div class="check-label">Lunch logged in MFP<span class="sub" id="lunchSub">12:30pm</span></div>
+        <div class="check-label">Lunch logged in MFP<span class="sub" id="lunchSub">12:30pm</span><input type="text" class="item-note-input" placeholder="Add a note…"></div>
+        <button class="note-toggle" type="button" aria-label="Add note">📝</button>
       </div>
       <div class="check-item" data-key="snack">
         <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
         <span class="check-emoji">🍎</span>
-        <div class="check-label">Afternoon snack logged in MFP<span class="sub">3pm · Apple + almond butter OR cuties + almonds</span></div>
+        <div class="check-label">Afternoon snack logged in MFP<span class="sub">3pm · Apple + almond butter OR cuties + almonds</span><input type="text" class="item-note-input" placeholder="Add a note…"></div>
+        <button class="note-toggle" type="button" aria-label="Add note">📝</button>
       </div>
     </div>
 
@@ -133,28 +139,33 @@
         <div class="check-label">
           <span id="w2label">Workout #2 — 45 min outdoor</span>
           <span class="sub" id="w2sub">Walk or outdoor bike · must be continuous</span>
-          <input type="text" class="workout-note" id="w2note" placeholder="What did you actually do?">
+          <input type="text" class="item-note-input" id="w2note" placeholder="What did you actually do?">
         </div>
+        <button class="note-toggle" type="button" aria-label="Add note">📝</button>
       </div>
       <div class="check-item" data-key="dinner">
         <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
         <span class="check-emoji">🍽️</span>
-        <div class="check-label">Dinner logged in MFP<span class="sub" id="dinnerSub">See meals tab for today's dinner</span></div>
+        <div class="check-label">Dinner logged in MFP<span class="sub" id="dinnerSub">See meals tab for today's dinner</span><input type="text" class="item-note-input" placeholder="Add a note…"></div>
+        <button class="note-toggle" type="button" aria-label="Add note">📝</button>
       </div>
       <div class="check-item" data-key="sweet">
         <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
         <span class="check-emoji">🍫</span>
-        <div class="check-label">Planned sweet slot<span class="sub">After dinner only · intentional, not reactive</span></div>
+        <div class="check-label">Planned sweet slot<span class="sub">After dinner only · intentional, not reactive</span><input type="text" class="item-note-input" placeholder="Add a note…"></div>
+        <button class="note-toggle" type="button" aria-label="Add note">📝</button>
       </div>
       <div class="check-item" data-key="water_total">
         <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
         <span class="check-emoji">💧</span>
-        <div class="check-label">100oz water complete<span class="sub">Track in Water tab</span></div>
+        <div class="check-label">100oz water complete<span class="sub">Track in Water tab</span><input type="text" class="item-note-input" placeholder="Add a note…"></div>
+        <button class="note-toggle" type="button" aria-label="Add note">📝</button>
       </div>
       <div class="check-item" data-key="reading">
         <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
         <span class="check-emoji">📖</span>
-        <div class="check-label">Read 10 pages<span class="sub">Physical book only · no audiobooks</span></div>
+        <div class="check-label">Read 10 pages<span class="sub">Physical book only · no audiobooks</span><input type="text" class="item-note-input" placeholder="Add a note…"></div>
+        <button class="note-toggle" type="button" aria-label="Add note">📝</button>
       </div>
     </div>
 

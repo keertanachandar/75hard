@@ -716,8 +716,22 @@
     z-index: 10;
   }
 
-  /* Workout note input */
-  .workout-note {
+  /* Per-item note */
+  .note-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    opacity: 0.35;
+    padding: 0 2px;
+    align-self: flex-start;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+  }
+  .note-toggle:hover { opacity: 0.8; }
+  .check-item.has-note .note-toggle { opacity: 0.9; }
+  .item-note-input {
+    display: none;
     width: 100%;
     margin-top: 8px;
     background: var(--bg3);
@@ -728,8 +742,9 @@
     font-size: 11px;
     padding: 6px 8px;
   }
-  .workout-note:focus { outline: none; border-color: var(--accent); }
-  .workout-note::placeholder { color: var(--text-dim); }
+  .check-item.note-open .item-note-input { display: block; }
+  .item-note-input:focus { outline: none; border-color: var(--accent); }
+  .item-note-input::placeholder { color: var(--text-dim); }
 
   /* Notes */
   .notes-area {
