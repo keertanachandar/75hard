@@ -473,3 +473,16 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
       gate.classList.add('visible');
     }
   });
+
+  function updateOnline() {
+    document.body.classList.toggle('offline', !navigator.onLine);
+  }
+  window.addEventListener('online', updateOnline);
+  window.addEventListener('offline', updateOnline);
+  updateOnline();
+
+  // Re-read from the backend when the app/window regains focus — catches
+  // edits made on another device (no live listeners in v1).
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && getCurrentUser()) render();
+  });
