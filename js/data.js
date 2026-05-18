@@ -118,11 +118,14 @@ export async function setToken(index, used) {
   const tokens = await getTokens();
   tokens[index] = used;
   await setDoc(doc(db, 'users', uid(), 'meta', 'state'), { tokens }, { merge: true });
+  // Event log write is best-effort: tokens live in meta/state, so this is a
+  // second write to a different doc. A logging failure must not reject the
+  // token save itself (which already succeeded) and surface a save-error.
   const tKey = todayKey();
-  await setDoc(dayRef(tKey), {
+  setDoc(dayRef(tKey), {
     events: arrayUnion(ev('token', tKey, { index, value: used })),
     updatedAt: serverTimestamp(),
-  }, { merge: true });
+  }, { merge: true }).catch((e) => console.warn('token event log failed:', e));
 }
 
 export async function logAppOpen() {
