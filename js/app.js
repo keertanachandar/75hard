@@ -119,8 +119,15 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
     return MONTHS[d.getMonth()].slice(0, 3) + ' ' + d.getDate();
   }
 
+  // Earliest navigable day: today while the challenge hasn't started yet,
+  // otherwise day 1 — so you can always return to today from day 1.
+  function navLowerBound() {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    return today < START ? today : START;
+  }
+
   function clampNav() {
-    document.getElementById('prevDay').disabled = viewDate <= START;
+    document.getElementById('prevDay').disabled = viewDate <= navLowerBound();
     document.getElementById('nextDay').disabled = viewDate >= NAV_END;
   }
 
@@ -458,7 +465,7 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
 
   // ── Date navigation ────────────────────────────────────
   document.getElementById('prevDay').onclick = () => {
-    if (viewDate <= START) return;
+    if (viewDate <= navLowerBound()) return;
     viewDate.setDate(viewDate.getDate() - 1);
     render();
   };
