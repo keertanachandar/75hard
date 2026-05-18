@@ -256,7 +256,8 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
       d.setDate(d.getDate() + i + 1);
       const dd = allDays[dateKey(d)] || { checks: {} };
       const done = Object.values(dd.checks).filter(Boolean).length === CHECKLIST_KEYS.length;
-      html += `<div class="streak-dot buffer${done ? ' complete' : ''}" data-day="Buffer +${i+1}"></div>`;
+      const isToday = d.getTime() === today.getTime();
+      html += `<div class="streak-dot buffer${done ? ' complete' : ''}${isToday ? ' today' : ''}" data-day="Buffer +${i+1}"></div>`;
     }
     bar.innerHTML = html;
   }
