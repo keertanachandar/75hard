@@ -52,11 +52,12 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
   };
 
   const WATER_CHECKPOINTS = [
-    { label: 'On wakeup', oz: 32 },
-    { label: 'With breakfast', oz: 48 },
-    { label: 'With lunch', oz: 64 },
-    { label: 'Afternoon snack', oz: 80 },
-    { label: 'Goal reached', oz: 100 },
+    { label: 'Wakeup', oz: 16 },
+    { label: 'Breakfast', oz: 32 },
+    { label: 'Lunch', oz: 48 },
+    { label: 'Afternoon snack', oz: 64 },
+    { label: 'Pre-workout #2', oz: 80 },
+    { label: 'Dinner + evening', oz: 100 },
   ];
 
   const CHECKLIST_KEYS = ['water_wake','vitamins','photo','breakfast','lunch','snack','dinner','sweet','water_total','reading']; // 10
