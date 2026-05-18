@@ -488,3 +488,9 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
       render().catch((e) => console.error('Refocus render failed:', e));
     }
   });
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+    });
+  }
