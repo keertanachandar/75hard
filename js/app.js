@@ -193,7 +193,7 @@
     ];
 
     mealGrid.innerHTML = meals.map(meal => `
-      <div class="meal-card ${data.checks[meal.key] ? 'checked' : ''}" onclick="toggleMeal('${meal.key}', this)">
+      <div class="meal-card ${data.checks[meal.key] ? 'checked' : ''}" data-meal-key="${meal.key}">
         <div class="meal-time">${meal.time}<div class="meal-checkmark"><svg width="8" height="6" viewBox="0 0 8 6" fill="none"><path d="M1 3L3 5L7 1" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg></div></div>
         <div class="meal-name">${meal.name}</div>
         <div class="meal-detail">${meal.detail}</div>
@@ -246,7 +246,7 @@
     const tokens = loadTokens();
     const row = document.getElementById('tokenRow');
     row.innerHTML = tokens.map((used, i) => `
-      <div class="token-card ${used ? 'used' : ''}" onclick="toggleToken(${i})">
+      <div class="token-card ${used ? 'used' : ''}" data-token-index="${i}">
         <div class="t-label">Token ${i+1}</div>
         <div class="t-icon">🎟️</div>
         <div class="t-status">${used ? 'Used' : 'Available'}</div>
@@ -360,5 +360,33 @@
     };
   });
 
+  // ── Event wiring ───────────────────────────────────────
+  function wireEvents() {
+    // Delegated checklist toggles (Today panel)
+    document.getElementById('panel-today').addEventListener('click', (e) => {
+      const item = e.target.closest('.check-item[data-key]');
+      if (item) toggle(item);
+    });
+
+    // Delegated meal-card toggles (Meals panel)
+    document.getElementById('mealGrid').addEventListener('click', (e) => {
+      const card = e.target.closest('[data-meal-key]');
+      if (card) toggleMeal(card.dataset.mealKey, card);
+    });
+
+    // Delegated token toggles (Progress panel)
+    document.getElementById('tokenRow').addEventListener('click', (e) => {
+      const card = e.target.closest('[data-token-index]');
+      if (card) toggleToken(Number(card.dataset.tokenIndex));
+    });
+
+    // Water buttons
+    document.querySelectorAll('.bottle-btn[data-water]').forEach((btn) => {
+      btn.addEventListener('click', () => addWater(Number(btn.dataset.water)));
+    });
+    document.getElementById('waterReset').addEventListener('click', resetWater);
+  }
+
   // ── Init ───────────────────────────────────────────────
+  wireEvents();
   render();
