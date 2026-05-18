@@ -201,8 +201,10 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
     // Render workout done state and notes
     [1, 2].forEach((s) => {
       const item = document.querySelector(`.workout-item[data-workout="${s}"]`);
+      if (!item) return;
       item.classList.toggle('checked', !!currentDay.workouts[s].done);
-      document.getElementById('w' + s + 'note').value = currentDay.workouts[s].note || '';
+      const noteEl = document.getElementById('w' + s + 'note');
+      if (noteEl) noteEl.value = currentDay.workouts[s].note || '';
     });
 
     // Progress bar
@@ -264,7 +266,7 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
       d.setDate(d.getDate() + i);
       const dd = allDays[dateKey(d)] || { checks: {} };
       const completed = dayCompletedCount(dd) === DAILY_TOTAL;
-      const partial = !completed && Object.values(dd.checks || {}).filter(Boolean).length > 0;
+      const partial = !completed && dayCompletedCount(dd) > 0;
       let cls = '';
       if (d.getTime() === today.getTime()) cls += ' today';
       if (completed) cls += ' complete';
