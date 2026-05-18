@@ -1,4 +1,4 @@
-import { getDay, getAllDays, getTokens, setCheck, setWorkoutDone, setWater, setNotes, setItemNote, setToken, logAppOpen } from './data.js';
+import { getDay, getAllDays, getTokens, setCheck, setWorkoutDone, setVitamin, setWater, setNotes, setItemNote, setToken, logAppOpen } from './data.js';
 import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
 
   // ── Constants ──────────────────────────────────────────
@@ -59,8 +59,8 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
     { label: 'Goal reached', oz: 100 },
   ];
 
-  const CHECKLIST_KEYS = ['water_wake','photo','breakfast','lunch','snack','dinner','sweet','water_total','reading']; // 9
-  const DAILY_TOTAL = 11; // 9 checks + 2 workout done flags
+  const CHECKLIST_KEYS = ['water_wake','vitamins','photo','breakfast','lunch','snack','dinner','sweet','water_total','reading']; // 10
+  const DAILY_TOTAL = 12; // 10 checks + 2 workout done flags
 
   function dayCompletedCount(day) {
     const checks = Object.values(day.checks || {}).filter(Boolean).length;
@@ -228,6 +228,9 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
       item.classList.toggle('note-open', note.length > 0);
     });
 
+    // Vitamin children
+    renderVitamins();
+
     // Progress bar
     updateDailyProgress();
 
@@ -323,6 +326,7 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
   function toggle(el) {
     if (isFuture(viewDate)) return;
     const key = el.dataset.key;
+    if (key === 'vitamins') { toggleVitaminsParent(); return; }
     const next = !currentDay.checks[key];
     currentDay.checks[key] = next;
     el.classList.toggle('checked', next);
@@ -385,6 +389,54 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
     persist(setWorkoutDone(dateKey(viewDate), slot, next));
   }
 
+  const VITAMINS = ['b12', 'iron', 'd3', 'magnesium'];
+  const REQUIRED_VITAMINS = ['b12', 'iron', 'd3'];
+
+  // Render the 4 vitamin children from currentDay. The parent is a normal
+  // CHECKLIST_KEYS item, rendered by the existing checklist loop.
+  function renderVitamins() {
+    VITAMINS.forEach((name) => {
+      const el = document.querySelector(`.vitamin-child[data-vitamin="${name}"]`);
+      if (el) el.classList.toggle('checked', !!currentDay.vitamins[name]);
+    });
+  }
+
+  // User clicked the "Take vitamins" parent: cascade all 4 children.
+  function toggleVitaminsParent() {
+    if (isFuture(viewDate)) return;
+    const next = !currentDay.checks.vitamins;
+    const key = dateKey(viewDate);
+    currentDay.checks.vitamins = next;
+    VITAMINS.forEach((name) => { currentDay.vitamins[name] = next; });
+    const parentEl = document.querySelector('.check-item[data-key="vitamins"]');
+    if (parentEl) parentEl.classList.toggle('checked', next);
+    renderVitamins();
+    updateDailyProgress();
+    renderStreakBar();
+    if (next && parentEl) spawnBurst(parentEl);
+    persist(setCheck(key, 'vitamins', next, 'direct'));
+    VITAMINS.forEach((name) => persist(setVitamin(key, name, next, 'cascade')));
+  }
+
+  // User clicked one vitamin child: save it, then re-evaluate the parent.
+  function toggleVitamin(name) {
+    if (isFuture(viewDate)) return;
+    const key = dateKey(viewDate);
+    const next = !currentDay.vitamins[name];
+    currentDay.vitamins[name] = next;
+    persist(setVitamin(key, name, next, 'direct'));
+    const parentShouldBe = REQUIRED_VITAMINS.every((n) => currentDay.vitamins[n]);
+    if (parentShouldBe !== !!currentDay.checks.vitamins) {
+      currentDay.checks.vitamins = parentShouldBe;
+      const parentEl = document.querySelector('.check-item[data-key="vitamins"]');
+      if (parentEl) parentEl.classList.toggle('checked', parentShouldBe);
+      persist(setCheck(key, 'vitamins', parentShouldBe, 'cascade'));
+    }
+    renderVitamins();
+    updateDailyProgress();
+    renderStreakBar();
+  }
+
   // ── Notes autosave ─────────────────────────────────────
   let notesTimer;
   document.getElementById('notesArea').addEventListener('input', function() {
@@ -428,6 +480,8 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
     // Delegated checklist toggles (Today panel)
     document.getElementById('panel-today').addEventListener('click', (e) => {
       if (e.target.closest('.item-note-input') || e.target.closest('.note-toggle')) return;
+      const vchild = e.target.closest('.vitamin-child[data-vitamin]');
+      if (vchild) { toggleVitamin(vchild.dataset.vitamin); return; }
       const item = e.target.closest('.check-item[data-key]');
       if (item) toggle(item);
     });

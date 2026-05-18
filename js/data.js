@@ -102,6 +102,14 @@ export async function setWorkoutDone(dateKey, slot, done) {
   }, { merge: true });
 }
 
+export async function setVitamin(dateKey, name, value, via) {
+  await setDoc(dayRef(dateKey), {
+    vitamins: { [name]: value },
+    events: arrayUnion(ev('check', dateKey, { key: 'vitamin:' + name, value, via })),
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+}
+
 // Per-item note. Workout keys route into workouts.{slot}.note; everything
 // else into itemNotes.{key}. The note event is coalesced (see shouldLogNote).
 export async function setItemNote(dateKey, key, text) {

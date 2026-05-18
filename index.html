@@ -78,7 +78,7 @@
     <div class="daily-progress">
       <div class="dp-header">
         <span class="dp-label">Daily Progress</span>
-        <span class="dp-count"><span id="dpChecked">0</span> / <span id="dpTotal">11</span> tasks</span>
+        <span class="dp-count"><span id="dpChecked">0</span> / <span id="dpTotal">12</span> tasks</span>
       </div>
       <div class="dp-bar"><div class="dp-fill" id="dpFill" style="width:0%"></div></div>
     </div>
@@ -112,6 +112,18 @@
         <span class="check-emoji">🍳</span>
         <div class="check-label">Breakfast logged in MFP<span class="sub">2 eggs + ¼ cup egg whites + veg + ¾ cup Greek yogurt + ½ cup berries</span><input type="text" class="item-note-input" placeholder="Add a note…"></div>
         <button class="note-toggle" type="button" aria-label="Add note">📝</button>
+      </div>
+      <div class="check-item" data-key="vitamins">
+        <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="check-emoji">💊</span>
+        <div class="check-label">Take vitamins<span class="sub">B12 · Iron · D3 · Magnesium</span><input type="text" class="item-note-input" placeholder="Add a note…"></div>
+        <button class="note-toggle" type="button" aria-label="Add note">📝</button>
+      </div>
+      <div class="vitamin-children">
+        <div class="vitamin-child" data-vitamin="b12"><div class="vc-box"></div><span>B12</span></div>
+        <div class="vitamin-child" data-vitamin="iron"><div class="vc-box"></div><span>Iron</span></div>
+        <div class="vitamin-child" data-vitamin="d3"><div class="vc-box"></div><span>D3</span></div>
+        <div class="vitamin-child" data-vitamin="magnesium"><div class="vc-box"></div><span>Magnesium <em>(optional)</em></span></div>
       </div>
     </div>
 

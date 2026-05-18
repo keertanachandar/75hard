@@ -746,6 +746,41 @@
   .item-note-input:focus { outline: none; border-color: var(--accent); }
   .item-note-input::placeholder { color: var(--text-dim); }
 
+  /* Vitamins sub-group */
+  .vitamin-children {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: -2px 0 6px 34px;
+  }
+  .vitamin-child {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: var(--bg2);
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--text-muted);
+    user-select: none;
+    transition: all 0.15s;
+  }
+  .vitamin-child:hover { border-color: var(--border2); }
+  .vitamin-child .vc-box {
+    width: 13px;
+    height: 13px;
+    border: 1.5px solid var(--border2);
+    border-radius: 3px;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .vitamin-child.checked { color: var(--text); border-color: var(--checked-border); background: var(--checked-bg); }
+  .vitamin-child.checked .vc-box { background: var(--accent3); border-color: var(--accent3); }
+  .vitamin-child em { font-style: normal; color: var(--text-dim); }
+  body.future-view .vitamin-children { opacity: 0.4; pointer-events: none; }
+
   /* Notes */
   .notes-area {
     width: 100%;
