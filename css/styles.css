@@ -805,3 +805,19 @@
   }
   /* Notes stay fully usable */
   body.future-view .notes-area { opacity: 1; pointer-events: auto; }
+
+  .mfp-link {
+    display: inline-block;
+    margin-bottom: 16px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--accent2);
+    text-decoration: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    padding: 8px 14px;
+    border-radius: 5px;
+    transition: all 0.15s;
+  }
+  .mfp-link:hover { border-color: var(--accent2); }
