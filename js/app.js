@@ -114,6 +114,11 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
     return `Buffer <span>+${n - TOTAL_DAYS}</span>`;
   }
 
+  // Short calendar label for a Date, e.g. "May 18".
+  function shortDate(d) {
+    return MONTHS[d.getMonth()].slice(0, 3) + ' ' + d.getDate();
+  }
+
   function clampNav() {
     document.getElementById('prevDay').disabled = viewDate <= START;
     document.getElementById('nextDay').disabled = viewDate >= NAV_END;
@@ -296,7 +301,7 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
       if (completed) cls += ' complete';
       else if (partial) cls += ' partial';
       const isInRange = d <= today;
-      html += `<div class="streak-dot${cls}" data-day="Day ${i+1}" style="opacity:${isInRange ? 1 : 0.3}"></div>`;
+      html += `<div class="streak-dot${cls}" data-day="Day ${i+1}\n${shortDate(d)}" style="opacity:${isInRange ? 1 : 0.3}"></div>`;
     }
     for (let i = 0; i < 9; i++) {
       const d = new Date(CHALLENGE_END);
@@ -304,7 +309,7 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
       const dd = allDays[dateKey(d)] || { checks: {} };
       const done = dayCompletedCount(dd) === DAILY_TOTAL;
       const isToday = d.getTime() === today.getTime();
-      html += `<div class="streak-dot buffer${done ? ' complete' : ''}${isToday ? ' today' : ''}" data-day="Buffer +${i+1}"></div>`;
+      html += `<div class="streak-dot buffer${done ? ' complete' : ''}${isToday ? ' today' : ''}" data-day="Buffer +${i+1}\n${shortDate(d)}"></div>`;
     }
     bar.innerHTML = html;
   }

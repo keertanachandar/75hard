@@ -710,7 +710,8 @@
     border-radius: 3px;
     padding: 2px 6px;
     font-size: 9px;
-    white-space: nowrap;
+    white-space: pre-line;
+    text-align: center;
     color: var(--text);
     pointer-events: none;
     z-index: 10;
