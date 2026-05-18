@@ -2,7 +2,7 @@
 import { db } from './config.js';
 import { getCurrentUser } from './auth.js';
 import {
-  doc, getDoc, getDocs, collection, setDoc, serverTimestamp
+  doc, getDoc, getDocs, collection, setDoc, serverTimestamp, arrayUnion
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 function uid() {
@@ -15,10 +15,40 @@ function dayRef(dateKey) {
   return doc(db, 'users', uid(), 'days', dateKey);
 }
 
+// ── Event log ──────────────────────────────────────────
+// Build an event object with a client timestamp.
+function ev(type, forDate, extra) {
+  return { type, ts: Date.now(), forDate, ...extra };
+}
+
+// Today's date key (for events not tied to the viewed day — token, open).
+function todayKey() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+// Note-event coalescing: log a note event only if the last one for this
+// day+target was more than COALESCE_MS ago. In-memory; resets on reload.
+const COALESCE_MS = 3 * 60 * 1000;
+const lastNoteEventAt = new Map();
+function shouldLogNote(dateKey, target) {
+  const k = `${dateKey}|${target}`;
+  const now = Date.now();
+  const prev = lastNoteEventAt.get(k);
+  if (prev && now - prev < COALESCE_MS) return false;
+  lastNoteEventAt.set(k, now);
+  return true;
+}
+
 function defaultDay() {
   return {
     checks: {},
     workouts: { 1: { done: false, note: '' }, 2: { done: false, note: '' } },
+    vitamins: { b12: false, iron: false, d3: false, magnesium: false },
+    itemNotes: {},
     water: 0,
     notes: '',
   };
@@ -32,6 +62,8 @@ function normalizeDay(d) {
       1: { done: false, note: '', ...(w['1']) },
       2: { done: false, note: '', ...(w['2']) },
     },
+    vitamins: { b12: false, iron: false, d3: false, magnesium: false, ...(d.vitamins) },
+    itemNotes: d.itemNotes || {},
     water: d.water || 0,
     notes: d.notes || '',
   };
@@ -54,10 +86,12 @@ export async function getTokens() {
   return snap.exists() && snap.data().tokens ? snap.data().tokens : [false, false, false];
 }
 
-export async function setCheck(dateKey, key, value) {
-  await setDoc(dayRef(dateKey),
-    { checks: { [key]: value }, updatedAt: serverTimestamp() },
-    { merge: true });
+export async function setCheck(dateKey, key, value, via = 'direct') {
+  await setDoc(dayRef(dateKey), {
+    checks: { [key]: value },
+    events: arrayUnion(ev('check', dateKey, { key, value, via })),
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
 }
 
 export async function setWorkout(dateKey, slot, { done, note }) {
@@ -73,13 +107,28 @@ export async function setWater(dateKey, oz) {
 }
 
 export async function setNotes(dateKey, text) {
-  await setDoc(dayRef(dateKey),
-    { notes: text, updatedAt: serverTimestamp() },
-    { merge: true });
+  const payload = { notes: text, updatedAt: serverTimestamp() };
+  if (shouldLogNote(dateKey, 'daily')) {
+    payload.events = arrayUnion(ev('note', dateKey, { target: 'daily' }));
+  }
+  await setDoc(dayRef(dateKey), payload, { merge: true });
 }
 
 export async function setToken(index, used) {
   const tokens = await getTokens();
   tokens[index] = used;
   await setDoc(doc(db, 'users', uid(), 'meta', 'state'), { tokens }, { merge: true });
+  const tKey = todayKey();
+  await setDoc(dayRef(tKey), {
+    events: arrayUnion(ev('token', tKey, { index, value: used })),
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+}
+
+export async function logAppOpen() {
+  const tKey = todayKey();
+  await setDoc(dayRef(tKey), {
+    events: arrayUnion(ev('open', tKey, {})),
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
 }

@@ -1,4 +1,4 @@
-import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes, setToken } from './data.js';
+import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes, setToken, logAppOpen } from './data.js';
 import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
 
   // ── Constants ──────────────────────────────────────────
@@ -468,6 +468,7 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
       gate.classList.remove('visible');
       appRoot.classList.add('visible');
       render();
+      logAppOpen().catch((e) => console.warn('logAppOpen failed:', e));
     } else {
       appRoot.classList.remove('visible');
       gate.classList.add('visible');
