@@ -484,5 +484,7 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
   // Re-read from the backend when the app/window regains focus — catches
   // edits made on another device (no live listeners in v1).
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && getCurrentUser()) render();
+    if (!document.hidden && getCurrentUser()) {
+      render().catch((e) => console.error('Refocus render failed:', e));
+    }
   });
