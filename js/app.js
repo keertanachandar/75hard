@@ -1,6 +1,8 @@
+import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes, setToken } from './data.js';
+
   // ── Constants ──────────────────────────────────────────
-  const START = new Date('2026-05-18');
-  const END   = new Date('2026-08-01');
+  const START = new Date('2026-05-18T00:00:00');
+  const END   = new Date('2026-08-01T00:00:00');
   const TOTAL_DAYS = 75;
 
   const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -62,26 +64,32 @@
   viewDate.setHours(0,0,0,0);
 
   function dateKey(d) {
-    return d.toISOString().slice(0,10);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
   }
 
-  function loadDay(d) {
-    const k = dateKey(d);
-    const saved = localStorage.getItem('75h_day_' + k);
-    return saved ? JSON.parse(saved) : { checks: {}, water: 0, notes: '' };
+  let currentDay = null;                       // DayData for viewDate, kept in sync with the DOM
+  let currentTokens = [false, false, false];   // exception tokens
+  let allDays = {};                            // { dateKey: DayData } — cache for the streak bar
+
+  // Fire-and-forget write with error containment. On failure, flag the body
+  // and re-render from the source of truth (which reverts the optimistic change).
+  function persist(promise) {
+    promise.catch((err) => {
+      console.error('Save failed:', err);
+      document.body.classList.add('save-error');
+      setTimeout(() => document.body.classList.remove('save-error'), 4000);
+      render();
+    });
   }
 
-  function saveDay(d, data) {
-    localStorage.setItem('75h_day_' + dateKey(d), JSON.stringify(data));
-  }
-
-  function loadTokens() {
-    const s = localStorage.getItem('75h_tokens');
-    return s ? JSON.parse(s) : [false, false, false];
-  }
-
-  function saveTokens(t) {
-    localStorage.setItem('75h_tokens', JSON.stringify(t));
+  // Recompute the daily progress bar from currentDay.
+  function updateDailyProgress() {
+    const checked = CHECKLIST_KEYS.filter((k) => currentDay.checks[k]).length;
+    document.getElementById('dpChecked').textContent = checked;
+    document.getElementById('dpFill').style.width = (checked / CHECKLIST_KEYS.length * 100) + '%';
   }
 
   // ── Helpers ────────────────────────────────────────────
@@ -97,8 +105,13 @@
   function getDayOfWeek(d) { return d.getDay(); } // 0=Sun,1=Mon,...
 
   // ── Render ─────────────────────────────────────────────
-  function render() {
-    const data = loadDay(viewDate);
+  async function render() {
+    const key = dateKey(viewDate);
+    currentDay = await getDay(key);
+    allDays = await getAllDays();
+    allDays[key] = currentDay;     // same object reference — handler edits show in the streak bar
+    currentTokens = await getTokens();
+
     const dow = getDayOfWeek(viewDate);
     const dayNum = dayNumber(viewDate);
     const inChallenge = isInChallenge(viewDate);
@@ -129,11 +142,10 @@
     document.getElementById('daysLeft').textContent = daysLeft;
 
     // Streak calc
-    let streak = 0;
-    let completedCount = 0;
-    let checkDate = new Date(today);
+    let streak = 0, completedCount = 0;
+    const checkDate = new Date(today);
     while (checkDate >= START) {
-      const dd = loadDay(checkDate);
+      const dd = allDays[dateKey(checkDate)] || { checks: {} };
       const checked = Object.values(dd.checks).filter(Boolean).length;
       if (checked === CHECKLIST_KEYS.length) {
         completedCount++;
@@ -170,17 +182,15 @@
     CHECKLIST_KEYS.forEach(key => {
       const el = document.querySelector('[data-key="' + key + '"]');
       if (!el) return;
-      if (data.checks[key]) { el.classList.add('checked'); }
+      if (currentDay.checks[key]) { el.classList.add('checked'); }
       else { el.classList.remove('checked'); }
     });
 
     // Progress bar
-    const checked = CHECKLIST_KEYS.filter(k => data.checks[k]).length;
-    document.getElementById('dpChecked').textContent = checked;
-    document.getElementById('dpFill').style.width = (checked / CHECKLIST_KEYS.length * 100) + '%';
+    updateDailyProgress();
 
     // Notes
-    document.getElementById('notesArea').value = data.notes || '';
+    document.getElementById('notesArea').value = currentDay.notes || '';
 
     // Meals panel
     const mealGrid = document.getElementById('mealGrid');
@@ -193,7 +203,7 @@
     ];
 
     mealGrid.innerHTML = meals.map(meal => `
-      <div class="meal-card ${data.checks[meal.key] ? 'checked' : ''}" data-meal-key="${meal.key}">
+      <div class="meal-card ${currentDay.checks[meal.key] ? 'checked' : ''}" data-meal-key="${meal.key}">
         <div class="meal-time">${meal.time}<div class="meal-checkmark"><svg width="8" height="6" viewBox="0 0 8 6" fill="none"><path d="M1 3L3 5L7 1" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg></div></div>
         <div class="meal-name">${meal.name}</div>
         <div class="meal-detail">${meal.detail}</div>
@@ -201,7 +211,7 @@
     `).join('');
 
     // Water
-    renderWater(data.water || 0);
+    renderWater(currentDay.water || 0);
 
     // Streak bar
     renderStreakBar();
@@ -230,7 +240,7 @@
     for (let i = 0; i < 75; i++) {
       const d = new Date(START);
       d.setDate(d.getDate() + i);
-      const dd = loadDay(d);
+      const dd = allDays[dateKey(d)] || { checks: {} };
       const checked = Object.values(dd.checks).filter(Boolean).length;
       let cls = '';
       if (d.getTime() === today.getTime()) cls += ' today';
@@ -243,73 +253,57 @@
   }
 
   function renderTokens() {
-    const tokens = loadTokens();
     const row = document.getElementById('tokenRow');
-    row.innerHTML = tokens.map((used, i) => `
+    row.innerHTML = currentTokens.map((used, i) => `
       <div class="token-card ${used ? 'used' : ''}" data-token-index="${i}">
         <div class="t-label">Token ${i+1}</div>
         <div class="t-icon">🎟️</div>
         <div class="t-status">${used ? 'Used' : 'Available'}</div>
       </div>
     `).join('');
-    const remaining = tokens.filter(t => !t).length;
+    const remaining = currentTokens.filter(t => !t).length;
     row.innerHTML += `<div style="align-self:center;font-size:11px;color:var(--text-muted)">${remaining}/3 tokens remaining<br><span style="font-size:10px">Click to toggle · must declare in advance</span></div>`;
   }
 
   // ── Interactions ───────────────────────────────────────
   function toggle(el) {
     const key = el.dataset.key;
-    const data = loadDay(viewDate);
-    data.checks[key] = !data.checks[key];
-    saveDay(viewDate, data);
-    if (data.checks[key]) {
-      el.classList.add('checked');
-      spawnBurst(el);
-    } else {
-      el.classList.remove('checked');
-    }
-    const checked = CHECKLIST_KEYS.filter(k => data.checks[k]).length;
-    document.getElementById('dpChecked').textContent = checked;
-    document.getElementById('dpFill').style.width = (checked / CHECKLIST_KEYS.length * 100) + '%';
+    const next = !currentDay.checks[key];
+    currentDay.checks[key] = next;
+    el.classList.toggle('checked', next);
+    if (next) spawnBurst(el);
+    updateDailyProgress();
     renderStreakBar();
+    persist(setCheck(dateKey(viewDate), key, next));
   }
 
   function toggleMeal(key, el) {
-    const data = loadDay(viewDate);
-    data.checks[key] = !data.checks[key];
-    saveDay(viewDate, data);
-    el.classList.toggle('checked', data.checks[key]);
-    if (data.checks[key]) spawnBurst(el);
-    const checked = CHECKLIST_KEYS.filter(k => data.checks[k]).length;
-    document.getElementById('dpChecked').textContent = checked;
-    document.getElementById('dpFill').style.width = (checked / CHECKLIST_KEYS.length * 100) + '%';
-    // Sync today panel
-    const todayEl = document.querySelector('[data-key="' + key + '"]');
-    if (todayEl) {
-      if (data.checks[key]) todayEl.classList.add('checked');
-      else todayEl.classList.remove('checked');
-    }
+    const next = !currentDay.checks[key];
+    currentDay.checks[key] = next;
+    el.classList.toggle('checked', next);
+    if (next) spawnBurst(el);
+    const todayEl = document.querySelector('.check-item[data-key="' + key + '"]');
+    if (todayEl) todayEl.classList.toggle('checked', next);
+    updateDailyProgress();
+    persist(setCheck(dateKey(viewDate), key, next));
   }
 
   function addWater(oz) {
-    const data = loadDay(viewDate);
-    data.water = Math.max(0, Math.min(200, (data.water || 0) + oz));
-    saveDay(viewDate, data);
-    renderWater(data.water);
+    currentDay.water = Math.max(0, Math.min(200, (currentDay.water || 0) + oz));
+    renderWater(currentDay.water);
+    persist(setWater(dateKey(viewDate), currentDay.water));
   }
 
   function resetWater() {
-    const data = loadDay(viewDate);
-    data.water = 0;
-    saveDay(viewDate, data);
+    currentDay.water = 0;
     renderWater(0);
+    persist(setWater(dateKey(viewDate), 0));
   }
 
   function toggleToken(i) {
-    const tokens = loadTokens();
-    tokens[i] = !tokens[i];
-    saveTokens(tokens);
+    currentTokens[i] = !currentTokens[i];
     renderTokens();
+    persist(setToken(i, currentTokens[i]));
   }
 
   function spawnBurst(el) {
@@ -328,9 +322,8 @@
   document.getElementById('notesArea').addEventListener('input', function() {
     clearTimeout(notesTimer);
     notesTimer = setTimeout(() => {
-      const data = loadDay(viewDate);
-      data.notes = this.value;
-      saveDay(viewDate, data);
+      currentDay.notes = this.value;
+      persist(setNotes(dateKey(viewDate), this.value));
     }, 500);
   });
 
