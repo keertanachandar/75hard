@@ -173,6 +173,8 @@
   }
 
   .date-nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .date-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .date-nav-btn:disabled:hover { border-color: var(--border); color: var(--text-muted); }
 
   .date-display {
     flex: 1;
@@ -693,6 +695,8 @@
   }
 
   .streak-dot.complete { background: var(--accent3); border-color: var(--accent3); }
+  .streak-dot.buffer { border-style: dashed; opacity: 0.7; }
+  .streak-bar .buffer:first-of-type { margin-left: 10px; }
   .streak-dot.partial { background: var(--accent2); border-color: var(--accent2); }
   .streak-dot.today { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(232,197,71,0.3); }
   .streak-dot:hover::after {

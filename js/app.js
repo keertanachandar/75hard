@@ -1,9 +1,10 @@
 import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes, setToken } from './data.js';
 
   // ── Constants ──────────────────────────────────────────
-  const START = new Date('2026-05-18T00:00:00');
-  const END   = new Date('2026-08-01T00:00:00');
-  const TOTAL_DAYS = 75;
+  const START         = new Date('2026-05-18T00:00:00'); // Day 1
+  const CHALLENGE_END  = new Date('2026-07-31T00:00:00'); // Day 75
+  const NAV_END        = new Date('2026-08-09T00:00:00'); // last navigable day
+  const TOTAL_DAYS     = 75;
 
   const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -98,8 +99,16 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
     return diff;
   }
 
-  function isInChallenge(d) {
-    return d >= START && d <= END;
+  function dayLabel(d) {
+    const n = dayNumber(d);
+    if (n < 1) return 'Challenge starts May 18';
+    if (n <= TOTAL_DAYS) return `Day <span>${n}</span> of 75`;
+    return `Buffer <span>+${n - TOTAL_DAYS}</span>`;
+  }
+
+  function clampNav() {
+    document.getElementById('prevDay').disabled = viewDate <= START;
+    document.getElementById('nextDay').disabled = viewDate >= NAV_END;
   }
 
   function getDayOfWeek(d) { return d.getDay(); } // 0=Sun,1=Mon,...
@@ -113,22 +122,12 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
     currentTokens = await getTokens();
 
     const dow = getDayOfWeek(viewDate);
-    const dayNum = dayNumber(viewDate);
-    const inChallenge = isInChallenge(viewDate);
 
     // Date display
     document.getElementById('currentDateDisplay').textContent =
       DAYS[dow] + ', ' + MONTHS[viewDate.getMonth()] + ' ' + viewDate.getDate();
 
-    let dayInfo = '';
-    if (inChallenge) {
-      dayInfo = 'Day <span>' + dayNum + '</span> of 75';
-    } else if (viewDate < START) {
-      dayInfo = 'Challenge starts May 18';
-    } else {
-      dayInfo = 'Challenge complete! 🎉';
-    }
-    document.getElementById('dayInfoDisplay').innerHTML = dayInfo;
+    document.getElementById('dayInfoDisplay').innerHTML = dayLabel(viewDate);
 
     // Global ring
     const today = new Date(); today.setHours(0,0,0,0);
@@ -138,7 +137,7 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
     document.getElementById('ringFill').style.strokeDashoffset = circ - (circ * pct);
     document.getElementById('dayNum').textContent = Math.max(0, elapsed);
 
-    const daysLeft = Math.max(0, Math.ceil((END - today) / 86400000));
+    const daysLeft = Math.max(0, Math.ceil((CHALLENGE_END - today) / 86400000));
     document.getElementById('daysLeft').textContent = daysLeft;
 
     // Streak calc
@@ -218,6 +217,9 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
 
     // Tokens
     renderTokens();
+
+    // Nav clamp
+    clampNav();
   }
 
   function renderWater(oz) {
@@ -248,6 +250,13 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
       else if (checked > 0) cls += ' partial';
       const isInRange = d <= today;
       html += `<div class="streak-dot${cls}" data-day="Day ${i+1}" style="opacity:${isInRange ? 1 : 0.3}"></div>`;
+    }
+    for (let i = 0; i < 9; i++) {
+      const d = new Date(CHALLENGE_END);
+      d.setDate(d.getDate() + i + 1);
+      const dd = allDays[dateKey(d)] || { checks: {} };
+      const done = Object.values(dd.checks).filter(Boolean).length === CHECKLIST_KEYS.length;
+      html += `<div class="streak-dot buffer${done ? ' complete' : ''}" data-day="Buffer +${i+1}"></div>`;
     }
     bar.innerHTML = html;
   }
@@ -329,11 +338,13 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
 
   // ── Date navigation ────────────────────────────────────
   document.getElementById('prevDay').onclick = () => {
+    if (viewDate <= START) return;
     viewDate.setDate(viewDate.getDate() - 1);
     render();
   };
 
   document.getElementById('nextDay').onclick = () => {
+    if (viewDate >= NAV_END) return;
     viewDate.setDate(viewDate.getDate() + 1);
     render();
   };
