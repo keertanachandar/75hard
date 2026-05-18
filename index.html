@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>75 Hard · Keertana</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f0e0c">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+</head>
+<body>
+<div class="signin-gate" id="signinGate">
+  <div class="signin-card">
+    <h1>75 Hard</h1>
+    <p>Sign in to track your challenge across all your devices.</p>
+    <button id="signinBtn">Sign in with Google</button>
+  </div>
+</div>
+<div class="app" id="appRoot">
+<div class="offline-bar" id="offlineBar">Offline — changes will sync when you reconnect</div>
+<div class="save-error-bar" id="saveErrorBar">Couldn't save — check your connection</div>
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="title-block">
+      <h1>75 Hard</h1>
+      <div class="subtitle">May 18 → Jul 31, 2026 · Keertana</div>
+    </div>
+    <div class="progress-block">
+      <div class="ring-wrap">
+        <svg width="72" height="72" viewBox="0 0 72 72">
+          <circle class="ring-bg" cx="36" cy="36" r="30"/>
+          <circle class="ring-fill" id="ringFill" cx="36" cy="36" r="30"
+            stroke-dasharray="188.5"
+            stroke-dashoffset="188.5"/>
+        </svg>
+        <div class="ring-text">
+          <div class="ring-text">
+            <div class="day-num" id="dayNum">0</div>
+            <div class="day-label">/ 75</div>
+          </div>
+        </div>
+      </div>
+      <div class="stats-block">
+        <div class="stat-row"><strong id="daysLeft">75</strong>&nbsp;days left</div>
+        <div class="stat-row" id="streakStat">🔥 0 day streak</div>
+        <div class="stat-row" id="completedStat">✓ 0 days complete</div>
+      </div>
+    </div>
+    <button class="signout-btn" id="signoutBtn">Sign out</button>
+  </div>
+
+  <!-- Date nav -->
+  <div class="date-nav">
+    <button class="date-nav-btn" id="prevDay">←</button>
+    <div class="date-display">
+      <div class="current-date" id="currentDateDisplay"></div>
+      <div class="day-info" id="dayInfoDisplay"></div>
+    </div>
+    <button class="today-btn" id="goToday">Today</button>
+    <button class="date-nav-btn" id="nextDay">→</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="today">Today</button>
+    <button class="tab" data-tab="meals">Meals</button>
+    <button class="tab" data-tab="water">Water</button>
+    <button class="tab" data-tab="streak">Progress</button>
+    <button class="tab" data-tab="reference">Reference</button>
+  </div>
+
+  <!-- TODAY panel -->
+  <div class="panel active" id="panel-today">
+    <div class="future-banner" id="futureBanner">Future day — notes only</div>
+    <div class="daily-progress">
+      <div class="dp-header">
+        <span class="dp-label">Daily Progress</span>
+        <span class="dp-count"><span id="dpChecked">0</span> / <span id="dpTotal">11</span> tasks</span>
+      </div>
+      <div class="dp-bar"><div class="dp-fill" id="dpFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="check-group">
+      <div class="section-header">Morning</div>
+      <div class="check-item" data-key="water_wake">
+        <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="check-emoji">💧</span>
+        <div class="check-label">32oz water on wakeup<span class="sub">Before coffee — this is non-negotiable</span></div>
+      </div>
+      <div class="check-item workout-item" data-workout="1">
+        <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="check-emoji" id="w1emoji">🚴</span>
+        <div class="check-label">
+          <span id="w1label">Workout #1 — 45 min</span>
+          <span class="sub" id="w1sub">Indoor · See workout tab for today's type</span>
+          <input type="text" class="workout-note" id="w1note" placeholder="What did you actually do?">
+        </div>
+      </div>
+      <div class="check-item" data-key="photo">
+        <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="check-emoji">📸</span>
+        <div class="check-label">Progress photo<span class="sub">After morning shower · same lighting</span></div>
+      </div>
+      <div class="check-item" data-key="breakfast">
+        <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="check-emoji">🍳</span>
+        <div class="check-label">Breakfast logged in MFP<span class="sub">2 eggs + ¼ cup egg whites + veg + ¾ cup Greek yogurt + ½ cup berries</span></div>
+      </div>
+    </div>
+
+    <div class="check-group">
+      <div class="section-header">Midday</div>
+      <div class="check-item" data-key="lunch">
+        <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="check-emoji">🥗</span>
+        <div class="check-label">Lunch logged in MFP<span class="sub" id="lunchSub">12:30pm</span></div>
+      </div>
+      <div class="check-item" data-key="snack">
+        <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="check-emoji">🍎</span>
+        <div class="check-label">Afternoon snack logged in MFP<span class="sub">3pm · Apple + almond butter OR cuties + almonds</span></div>
+      </div>
+    </div>
+
+    <div class="check-group">
+      <div class="section-header">Evening</div>
+      <div class="check-item workout-item" data-workout="2">
+        <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="check-emoji">🚶</span>
+        <div class="check-label">
+          <span id="w2label">Workout #2 — 45 min outdoor</span>
+          <span class="sub" id="w2sub">Walk or outdoor bike · must be continuous</span>
+          <input type="text" class="workout-note" id="w2note" placeholder="What did you actually do?">
+        </div>
+      </div>
+      <div class="check-item" data-key="dinner">
+        <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="check-emoji">🍽️</span>
+        <div class="check-label">Dinner logged in MFP<span class="sub" id="dinnerSub">See meals tab for today's dinner</span></div>
+      </div>
+      <div class="check-item" data-key="sweet">
+        <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="check-emoji">🍫</span>
+        <div class="check-label">Planned sweet slot<span class="sub">After dinner only · intentional, not reactive</span></div>
+      </div>
+      <div class="check-item" data-key="water_total">
+        <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="check-emoji">💧</span>
+        <div class="check-label">100oz water complete<span class="sub">Track in Water tab</span></div>
+      </div>
+      <div class="check-item" data-key="reading">
+        <div class="checkbox"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="check-emoji">📖</span>
+        <div class="check-label">Read 10 pages<span class="sub">Physical book only · no audiobooks</span></div>
+      </div>
+    </div>
+
+    <div class="check-group">
+      <div class="section-header">Notes</div>
+      <textarea class="notes-area" id="notesArea" placeholder="How did today go? Any cravings, wins, struggles..."></textarea>
+    </div>
+  </div>
+
+  <!-- MEALS panel -->
+  <div class="panel" id="panel-meals">
+    <div class="section-header">Today's Meals</div>
+    <a class="mfp-link" href="https://www.myfitnesspal.com/food/diary" target="_blank" rel="noopener">
+      📲 Open MyFitnessPal to log
+    </a>
+    <div class="meal-grid" id="mealGrid"></div>
+
+    <div class="section-header" style="margin-top:8px">Sweet Slot Options</div>
+    <div class="sweet-grid">
+      <div class="sweet-card"><span>2 squares dark chocolate (70%+)</span><span class="sweet-cal">~100 cal</span></div>
+      <div class="sweet-card"><span>Mango chunks with tajin</span><span class="sweet-cal">~100 cal</span></div>
+      <div class="sweet-card"><span>Greek yogurt + honey + berries</span><span class="sweet-cal">~150 cal</span></div>
+      <div class="sweet-card"><span>Medjool date + almond butter</span><span class="sweet-cal">~120 cal</span></div>
+      <div class="sweet-card"><span>Banana + peanut butter</span><span class="sweet-cal">~180 cal</span></div>
+      <div class="sweet-card"><span>Fresh fruit bowl</span><span class="sweet-cal">~80–120 cal</span></div>
+    </div>
+  </div>
+
+  <!-- WATER panel -->
+  <div class="panel" id="panel-water">
+    <div class="water-tracker">
+      <div class="water-header">
+        <div>
+          <div class="water-oz" id="waterOz">0 <span>oz</span></div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">of 100oz goal</div>
+        </div>
+        <button id="waterReset" style="background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:5px 10px;border-radius:4px;cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;">Reset</button>
+      </div>
+      <div class="water-bar"><div class="water-fill" id="waterFill" style="width:0%"></div></div>
+      <div class="water-bottles" style="margin-top:14px">
+        <button class="bottle-btn" data-water="8">+8 oz</button>
+        <button class="bottle-btn" data-water="16">+16 oz</button>
+        <button class="bottle-btn" data-water="32">+32 oz</button>
+        <button class="bottle-btn" data-water="-8">-8 oz</button>
+      </div>
+      <div class="water-checkpoints" id="waterCheckpoints"></div>
+    </div>
+  </div>
+
+  <!-- STREAK / PROGRESS panel -->
+  <div class="panel" id="panel-streak">
+    <div class="section-header">75 Day Journey</div>
+    <div class="streak-bar" id="streakBar"></div>
+
+    <div class="section-header" style="margin-top:8px">Exception Tokens</div>
+    <div class="token-row" id="tokenRow"></div>
+
+    <div class="section-header" style="margin-top:8px">Weekly Workout Split</div>
+    <table class="ref-table" style="margin-bottom:24px">
+      <thead><tr><th>Day</th><th>Workout #1</th><th>Workout #2</th></tr></thead>
+      <tbody>
+        <tr><td>Mon</td><td>🚴 Peloton</td><td>🚶 Walk (Chipotle run)</td></tr>
+        <tr><td>Tue</td><td>💪 Strength</td><td>🚶 Walk ~7:15pm</td></tr>
+        <tr><td>Wed</td><td>🚴 Peloton</td><td>🚶 Walk ~7:15pm</td></tr>
+        <tr><td>Thu</td><td>💪 Strength</td><td>🚶 Walk 5–5:45pm (before improv)</td></tr>
+        <tr><td>Fri</td><td>🧘 Recovery yoga</td><td>🚶 Walk ~7pm</td></tr>
+        <tr><td>Weekend</td><td>💪 Strength or 🚴 Peloton</td><td>🚴🥾 Long ride or hike</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- REFERENCE panel -->
+  <div class="panel" id="panel-reference">
+    <div class="ref-section">
+      <div class="section-header">Diet Rules</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:14px">
+          <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent3);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)">✓ Allowed</div>
+          <div style="font-size:11px;color:var(--text-muted);display:flex;flex-direction:column;gap:5px">
+            <div>✓ Eggs, Greek yogurt, paneer, tofu, lentils, chickpeas</div>
+            <div>✓ Brown rice, quinoa, whole grain bread/roti</div>
+            <div>✓ Vegetables, fruit, legumes</div>
+            <div>✓ Olive oil, nuts, avocado, guacamole</div>
+            <div>✓ Indian spices, whole ingredient sauces</div>
+            <div>✓ One planned sweet daily after dinner</div>
+            <div>✓ Chipotle bowl (sofritas + beans + guac)</div>
+            <div>✓ Clean takeout Fri (Indian, Mediterranean, Thai)</div>
+            <div>✓ White rice in Indian cooking context</div>
+            <div>✓ Protein bars under 5g added sugar</div>
+            <div>✓ Real food at parties (eat before going)</div>
+            <div>✓ One dessert at parties (if you ate first)</div>
+          </div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:14px">
+          <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent2);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)">✗ Cheats</div>
+          <div style="font-size:11px;color:var(--text-muted);display:flex;flex-direction:column;gap:5px">
+            <div>✗ Packaged/processed snacks, chips, cookies</div>
+            <div>✗ Added sugar outside sweet slot</div>
+            <div>✗ Sugary drinks, juice, sweetened coffee syrups</div>
+            <div>✗ Sour cream, cheese, queso at Chipotle</div>
+            <div>✗ Tortillas, fried food</div>
+            <div>✗ Alcohol without declaring a token first</div>
+            <div>✗ Skipping meals</div>
+            <div>✗ Sweet slot as stress reaction mid-day</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ref-section">
+      <div class="section-header">Standard Breakfast</div>
+      <table class="ref-table" style="margin-bottom:24px">
+        <thead><tr><th>Component</th><th>Amount</th><th>Cal</th><th>Protein</th></tr></thead>
+        <tbody>
+          <tr><td>Whole eggs scrambled</td><td>2 eggs</td><td>140</td><td>12g</td></tr>
+          <tr><td>Egg whites (bottle)</td><td>¼ cup (2 oz)</td><td>30</td><td>6g</td></tr>
+          <tr><td>Sautéed spinach/peppers</td><td>Handful</td><td>20</td><td>1g</td></tr>
+          <tr><td>Greek yogurt (Fage 2%)</td><td>¾ cup (170g)</td><td>130</td><td>15g</td></tr>
+          <tr><td>Frozen berries</td><td>½ cup</td><td>40</td><td>1g</td></tr>
+          <tr><td><strong>Total</strong></td><td>—</td><td><strong>~420</strong></td><td><strong>~35g</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="section-header">Binge Prevention</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:24px">
+        <div class="check-item" style="cursor:default"><span class="check-emoji">⚠️</span><div class="check-label">Never skip meals — undereating triggers binges<span class="sub">Log in MFP before eating, not after</span></div></div>
+        <div class="check-item" style="cursor:default"><span class="check-emoji">💧</span><div class="check-label">Drink 16oz water before acting on any craving<span class="sub">Wait 10 min — the craving usually passes</span></div></div>
+        <div class="check-item" style="cursor:default"><span class="check-emoji">🍫</span><div class="check-label">Eat the sweet slot every day even when not craving<span class="sub">It's not a reward — it's a tool</span></div></div>
+        <div class="check-item" style="cursor:default"><span class="check-emoji">🛒</span><div class="check-label">Don't keep binge foods in the house<span class="sub">Friction is your friend</span></div></div>
+        <div class="check-item" style="cursor:default"><span class="check-emoji">📅</span><div class="check-label">Plan weekend meals on Friday night<span class="sub">Your data shows weekends are high-risk</span></div></div>
+        <div class="check-item" style="cursor:default"><span class="check-emoji">🦴</span><div class="check-label">Soreness = push through · Pain = swap to yoga/walk<span class="sub">Protect your L5-S1</span></div></div>
+      </div>
+    </div>
+
+    <div class="ref-section">
+      <div class="section-header">MFP Targets</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:12px 16px;text-align:center"><div style="font-size:10px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Calories</div><div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--accent)">1,950</div></div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:12px 16px;text-align:center"><div style="font-size:10px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Protein</div><div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--accent2)">130g</div></div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:12px 16px;text-align:center"><div style="font-size:10px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Carbs</div><div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--accent3)">180g</div></div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:12px 16px;text-align:center"><div style="font-size:10px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Fat</div><div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--accent4)">65g</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
