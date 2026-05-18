@@ -328,14 +328,14 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
     if (isFuture(viewDate)) return;
     currentDay.water = Math.max(0, Math.min(200, (currentDay.water || 0) + oz));
     renderWater(currentDay.water);
-    persist(setWater(dateKey(viewDate), currentDay.water));
+    persist(setWater(dateKey(viewDate), currentDay.water, oz));
   }
 
   function resetWater() {
     if (isFuture(viewDate)) return;
     currentDay.water = 0;
     renderWater(0);
-    persist(setWater(dateKey(viewDate), 0));
+    persist(setWater(dateKey(viewDate), 0, 'reset'));
   }
 
   function toggleToken(i) {

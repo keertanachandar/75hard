@@ -100,10 +100,12 @@ export async function setWorkout(dateKey, slot, { done, note }) {
     { merge: true });
 }
 
-export async function setWater(dateKey, oz) {
-  await setDoc(dayRef(dateKey),
-    { water: oz, updatedAt: serverTimestamp() },
-    { merge: true });
+export async function setWater(dateKey, total, delta) {
+  await setDoc(dayRef(dateKey), {
+    water: total,
+    events: arrayUnion(ev('water', dateKey, { amount: delta })),
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
 }
 
 export async function setNotes(dateKey, text) {
