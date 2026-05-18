@@ -765,3 +765,28 @@
     .title-block h1 { font-size: 28px; }
     .meal-grid { grid-template-columns: 1fr; }
   }
+
+  /* Future-day locked state */
+  .future-banner {
+    display: none;
+    background: rgba(224,122,58,0.12);
+    border: 1px solid rgba(224,122,58,0.3);
+    color: var(--accent2);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    border-radius: 5px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  body.future-view .future-banner { display: block; }
+  body.future-view .check-group .check-item,
+  body.future-view .meal-grid,
+  body.future-view .water-tracker .water-bottles,
+  body.future-view #waterReset {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  /* Notes stay fully usable */
+  body.future-view .notes-area { opacity: 1; pointer-events: auto; }

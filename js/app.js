@@ -113,6 +113,11 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
 
   function getDayOfWeek(d) { return d.getDay(); } // 0=Sun,1=Mon,...
 
+  function isFuture(d) {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    return d > today;
+  }
+
   // ── Render ─────────────────────────────────────────────
   async function render() {
     const key = dateKey(viewDate);
@@ -122,6 +127,8 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
     currentTokens = await getTokens();
 
     const dow = getDayOfWeek(viewDate);
+
+    document.body.classList.toggle('future-view', isFuture(viewDate));
 
     // Date display
     document.getElementById('currentDateDisplay').textContent =
@@ -277,6 +284,7 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
 
   // ── Interactions ───────────────────────────────────────
   function toggle(el) {
+    if (isFuture(viewDate)) return;
     const key = el.dataset.key;
     const next = !currentDay.checks[key];
     currentDay.checks[key] = next;
@@ -288,6 +296,7 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
   }
 
   function toggleMeal(key, el) {
+    if (isFuture(viewDate)) return;
     const next = !currentDay.checks[key];
     currentDay.checks[key] = next;
     el.classList.toggle('checked', next);
@@ -299,12 +308,14 @@ import { getDay, getAllDays, getTokens, setCheck, setWorkout, setWater, setNotes
   }
 
   function addWater(oz) {
+    if (isFuture(viewDate)) return;
     currentDay.water = Math.max(0, Math.min(200, (currentDay.water || 0) + oz));
     renderWater(currentDay.water);
     persist(setWater(dateKey(viewDate), currentDay.water));
   }
 
   function resetWater() {
+    if (isFuture(viewDate)) return;
     currentDay.water = 0;
     renderWater(0);
     persist(setWater(dateKey(viewDate), 0));
