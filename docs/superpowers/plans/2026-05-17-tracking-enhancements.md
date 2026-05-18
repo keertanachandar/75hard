@@ -280,10 +280,11 @@ export async function setItemNote(dateKey, key, text) {
 
 - [ ] **Step 2: Update the `js/app.js` import line**
 
-Replace line 1 of `js/app.js` entirely. Remove `setWorkout`; add `setWorkoutDone`, `setItemNote`, `setVitamin`. (`setVitamin` is created in Task 5; importing it now is harmless and avoids re-editing this line.) The line becomes:
+Replace line 1 of `js/app.js` entirely. Remove `setWorkout`; add `setWorkoutDone` and `setItemNote`. The line becomes:
 ```javascript
-import { getDay, getAllDays, getTokens, setCheck, setWorkoutDone, setVitamin, setWater, setNotes, setItemNote, setToken, logAppOpen } from './data.js';
+import { getDay, getAllDays, getTokens, setCheck, setWorkoutDone, setWater, setNotes, setItemNote, setToken, logAppOpen } from './data.js';
 ```
+(Do NOT forward-import `setVitamin` here — it does not exist in `js/data.js` until Task 5. A named import of a missing export is an ES-module link-time error that breaks the whole app. Task 5 adds `setVitamin` to this line.)
 
 - [ ] **Step 3: Update `toggleWorkout` in `js/app.js`**
 
@@ -535,6 +536,12 @@ export async function setVitamin(dateKey, name, value, via) {
   }, { merge: true });
 }
 ```
+
+Then add `setVitamin` to the `./data.js` import on line 1 of `js/app.js`. The line becomes:
+```javascript
+import { getDay, getAllDays, getTokens, setCheck, setWorkoutDone, setVitamin, setWater, setNotes, setItemNote, setToken, logAppOpen } from './data.js';
+```
+(`data.js` now exports `setVitamin`, so this import resolves cleanly.)
 
 - [ ] **Step 2: Add the vitamins markup to `index.html`**
 
