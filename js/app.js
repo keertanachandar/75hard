@@ -51,13 +51,17 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
     },
   };
 
+  // Thresholds the water_wake / water_total checks derive from. Keep in
+  // sync with the first and last WATER_CHECKPOINTS entries.
+  const WATER_WAKE_OZ = 16;
+  const WATER_GOAL_OZ = 100;
   const WATER_CHECKPOINTS = [
-    { label: 'Wakeup', oz: 16 },
+    { label: 'Wakeup', oz: WATER_WAKE_OZ },
     { label: 'Breakfast', oz: 32 },
     { label: 'Lunch', oz: 48 },
     { label: 'Afternoon snack', oz: 64 },
     { label: 'Pre-workout #2', oz: 80 },
-    { label: 'Dinner + evening', oz: 100 },
+    { label: 'Dinner + evening', oz: WATER_GOAL_OZ },
   ];
 
   const CHECKLIST_KEYS = ['water_wake','vitamins','photo','breakfast','lunch','snack','dinner','sweet','water_total','reading']; // 10
@@ -340,6 +344,8 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
     if (isFuture(viewDate)) return;
     const key = el.dataset.key;
     if (key === 'vitamins') { toggleVitaminsParent(); return; }
+    if (key === 'water_wake')  { toggleWaterShortcut('water_wake',  WATER_WAKE_OZ); return; }
+    if (key === 'water_total') { toggleWaterShortcut('water_total', WATER_GOAL_OZ); return; }
     const next = !currentDay.checks[key];
     currentDay.checks[key] = next;
     el.classList.toggle('checked', next);
@@ -366,6 +372,9 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
     currentDay.water = Math.max(0, Math.min(200, (currentDay.water || 0) + oz));
     renderWater(currentDay.water);
     persist(setWater(dateKey(viewDate), currentDay.water, oz));
+    syncWaterChecks();
+    updateDailyProgress();
+    renderStreakBar();
   }
 
   function resetWater() {
@@ -373,6 +382,48 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
     currentDay.water = 0;
     renderWater(0);
     persist(setWater(dateKey(viewDate), 0, 'reset'));
+    syncWaterChecks();
+    updateDailyProgress();
+    renderStreakBar();
+  }
+
+  // Derive water_wake (@16oz) and water_total (@100oz) checks from the water
+  // total. Persists a flip as via='cascade'. Caller refreshes progress + streak.
+  function syncWaterChecks() {
+    const w = currentDay.water || 0;
+    syncOneWaterCheck('water_wake',  w >= WATER_WAKE_OZ);
+    syncOneWaterCheck('water_total', w >= WATER_GOAL_OZ);
+  }
+
+  function syncOneWaterCheck(key, want) {
+    if (!!currentDay.checks[key] === want) return;
+    currentDay.checks[key] = want;
+    const el = document.querySelector(`.check-item[data-key="${key}"]`);
+    if (el) el.classList.toggle('checked', want);
+    persist(setCheck(dateKey(viewDate), key, want, 'cascade'));
+  }
+
+  // User clicked a water milestone check: jump the water total across the
+  // threshold, persist both writes, and let the other water check follow.
+  function toggleWaterShortcut(key, threshold) {
+    if (isFuture(viewDate)) return;
+    const cur = currentDay.water || 0;
+    const want = cur < threshold;
+    const newWater = want ? threshold : 0;
+    const delta = newWater - cur;
+    currentDay.water = newWater;
+    currentDay.checks[key] = want;
+    renderWater(newWater);
+    const el = document.querySelector(`.check-item[data-key="${key}"]`);
+    if (el) {
+      el.classList.toggle('checked', want);
+      if (want) spawnBurst(el);
+    }
+    persist(setWater(dateKey(viewDate), newWater, delta));
+    persist(setCheck(dateKey(viewDate), key, want, 'direct'));
+    syncWaterChecks();
+    updateDailyProgress();
+    renderStreakBar();
   }
 
   function toggleToken(i) {
