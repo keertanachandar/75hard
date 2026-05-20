@@ -51,12 +51,11 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
     },
   };
 
-  // Thresholds the water_wake / water_total checks derive from. Keep in
-  // sync with the first and last WATER_CHECKPOINTS entries.
-  const WATER_WAKE_OZ = 16;
+  // Threshold the water_total check derives from. Keep in sync with the
+  // last WATER_CHECKPOINTS entry.
   const WATER_GOAL_OZ = 100;
   const WATER_CHECKPOINTS = [
-    { label: 'Wakeup', oz: WATER_WAKE_OZ },
+    { label: 'Wakeup', oz: 16 },
     { label: 'Breakfast', oz: 32 },
     { label: 'Lunch', oz: 48 },
     { label: 'Afternoon snack', oz: 64 },
@@ -344,7 +343,8 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
     if (isFuture(viewDate)) return;
     const key = el.dataset.key;
     if (key === 'vitamins') { toggleVitaminsParent(); return; }
-    if (key === 'water_wake')  { toggleWaterShortcut('water_wake',  WATER_WAKE_OZ); return; }
+    // water_wake stays a normal independent toggle (drinking 16oz from a
+    // 40oz bottle, the water-tab math gets awkward if it's auto-synced).
     if (key === 'water_total') { toggleWaterShortcut('water_total', WATER_GOAL_OZ); return; }
     const next = !currentDay.checks[key];
     currentDay.checks[key] = next;
@@ -387,11 +387,10 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
     renderStreakBar();
   }
 
-  // Derive water_wake (@16oz) and water_total (@100oz) checks from the water
-  // total. Persists a flip as via='cascade'. Caller refreshes progress + streak.
+  // Derive the water_total check (@100oz) from the water total. Persists a
+  // flip as via='cascade'. Caller refreshes progress + streak.
   function syncWaterChecks() {
     const w = currentDay.water || 0;
-    syncOneWaterCheck('water_wake',  w >= WATER_WAKE_OZ);
     syncOneWaterCheck('water_total', w >= WATER_GOAL_OZ);
   }
 
