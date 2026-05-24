@@ -343,6 +343,8 @@
     display: block;
   }
 
+  .check-label .sub:empty { display: none; }
+
   .check-emoji { font-size: 14px; flex-shrink: 0; }
 
   /* Progress bar */

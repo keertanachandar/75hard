@@ -456,9 +456,9 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
   function applyWeekendWorkoutLayout(w) {
     document.getElementById('w1emoji').textContent = w.emoji;
     document.getElementById('w1label').textContent = 'Session 1 — 45 min';
-    document.getElementById('w1sub').textContent = w.label;
+    document.getElementById('w1sub').textContent = '';
     document.getElementById('w2label').textContent = 'Session 2 — 45 min';
-    document.getElementById('w2sub').textContent = 'Split however — outdoor or indoor';
+    document.getElementById('w2sub').textContent = '';
     const weekendChildren = document.getElementById('weekendChildren');
     const w1 = document.querySelector('.workout-item[data-workout="1"]');
     const w2 = document.querySelector('.workout-item[data-workout="2"]');
