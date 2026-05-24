@@ -1,4 +1,4 @@
-import { getDay, getAllDays, getTokens, setCheck, setWorkoutDone, setVitamin, setWater, setNotes, setItemNote, setToken, logAppOpen } from './data.js';
+import { getDay, getAllDays, getTokens, setCheck, setWorkoutDone, setVitamin, setWater, setNotes, setItemNote, setToken, setWeekendOverride, logAppOpen } from './data.js';
 import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
 
   // ── Constants ──────────────────────────────────────────
@@ -199,14 +199,23 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
     document.getElementById('streakStat').textContent = '🔥 ' + streak + ' day streak';
     document.getElementById('completedStat').textContent = '✓ ' + completedCount + ' days complete';
 
-    // Workout for day — weekday vs weekend layout
+    // Workout for day — weekday vs weekend layout (user can override future days)
     const w = WORKOUTS[dow];
-    if (isWeekendDay(dow)) {
+    const useWeekendLayout = isWeekendDay(dow) || !!currentDay.weekendOverride;
+    if (useWeekendLayout) {
       applyWeekendWorkoutLayout(w);
     } else {
       applyWeekdayWorkoutLayout(w, dow);
     }
     updateWeekendParentState();
+
+    // Weekend-override toggle: only shown on future weekdays.
+    const wkToggle = document.getElementById('weekendOverrideToggle');
+    const wkChk = document.getElementById('weekendOverrideChk');
+    if (wkToggle && wkChk) {
+      wkToggle.hidden = !(isFuture(viewDate) && !isWeekendDay(dow));
+      wkChk.checked = !!currentDay.weekendOverride;
+    }
 
     // Meals
     const m = MEALS[dow];
@@ -652,6 +661,25 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
         toggleWorkout(slot, item);
       });
     });
+
+    // Weekend-override toggle (future weekdays only)
+    const wkOvChk = document.getElementById('weekendOverrideChk');
+    if (wkOvChk) {
+      wkOvChk.addEventListener('change', () => {
+        const dow = getDayOfWeek(viewDate);
+        if (!isFuture(viewDate) || isWeekendDay(dow)) {
+          wkOvChk.checked = !!currentDay.weekendOverride; // revert UI
+          return;
+        }
+        const next = wkOvChk.checked;
+        currentDay.weekendOverride = next;
+        persist(setWeekendOverride(dateKey(viewDate), next));
+        const w = WORKOUTS[dow];
+        if (next) applyWeekendWorkoutLayout(w);
+        else applyWeekdayWorkoutLayout(w, dow);
+        updateWeekendParentState();
+      });
+    }
 
     // Water buttons
     document.querySelectorAll('.bottle-btn[data-water]').forEach((btn) => {

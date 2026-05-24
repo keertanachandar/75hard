@@ -51,6 +51,7 @@ function defaultDay() {
     itemNotes: {},
     water: 0,
     notes: '',
+    weekendOverride: false,
   };
 }
 
@@ -66,6 +67,7 @@ function normalizeDay(d) {
     itemNotes: d.itemNotes || {},
     water: d.water || 0,
     notes: d.notes || '',
+    weekendOverride: !!d.weekendOverride,
   };
 }
 
@@ -154,6 +156,15 @@ export async function setToken(index, used) {
     events: arrayUnion(ev('token', tKey, { index, value: used })),
     updatedAt: serverTimestamp(),
   }, { merge: true }).catch((e) => console.warn('token event log failed:', e));
+}
+
+// User flag: render this future weekday with the weekend workout layout.
+export async function setWeekendOverride(dateKey, value) {
+  await setDoc(dayRef(dateKey), {
+    weekendOverride: value,
+    events: arrayUnion(ev('check', dateKey, { key: 'weekend_override', value, via: 'direct' })),
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
 }
 
 export async function logAppOpen() {

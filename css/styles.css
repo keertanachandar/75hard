@@ -875,6 +875,34 @@
   /* Notes stay fully usable */
   body.future-view .notes-area { opacity: 1; pointer-events: auto; }
 
+  /* Per-day weekend-format toggle (shown only on future weekdays) */
+  .weekend-override-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--text-muted);
+    user-select: none;
+    transition: all 0.15s;
+  }
+  .weekend-override-toggle:hover { border-color: var(--border2); color: var(--text); }
+  .weekend-override-toggle input[type="checkbox"] {
+    cursor: pointer;
+    margin: 0;
+    accent-color: var(--accent3);
+  }
+  .weekend-override-toggle:has(input:checked) {
+    background: var(--checked-bg);
+    border-color: var(--checked-border);
+    color: var(--text);
+  }
+
   /* Future day: surface the Notes section (the only editable thing) at the top */
   body.future-view #panel-today.active {
     display: flex;
