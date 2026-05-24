@@ -199,20 +199,14 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
     document.getElementById('streakStat').textContent = '🔥 ' + streak + ' day streak';
     document.getElementById('completedStat').textContent = '✓ ' + completedCount + ' days complete';
 
-    // Workout for day
+    // Workout for day — weekday vs weekend layout
     const w = WORKOUTS[dow];
-    document.getElementById('w1emoji').textContent = w.emoji;
-    document.getElementById('w1label').textContent = 'Workout #1 — ' + w.label;
-    document.getElementById('w1sub').textContent = w.sub;
-
-    // Evening walk note
-    if (dow === 4) { // Thursday
-      document.getElementById('w2sub').textContent = '5:00–5:45pm · before improv at 7pm';
-    } else if (dow === 1) { // Monday
-      document.getElementById('w2sub').textContent = 'Walk to Chipotle + back after violin · 6:30pm';
+    if (isWeekendDay(dow)) {
+      applyWeekendWorkoutLayout(w);
     } else {
-      document.getElementById('w2sub').textContent = 'Leave ~7:15pm · must be continuous 45 min';
+      applyWeekdayWorkoutLayout(w, dow);
     }
+    updateWeekendParentState();
 
     // Meals
     const m = MEALS[dow];
@@ -450,6 +444,86 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
     updateDailyProgress();
     renderStreakBar();
     persist(setWorkoutDone(dateKey(viewDate), slot, next));
+    updateWeekendParentState();
+  }
+
+  // ── Weekend workout layout ─────────────────────────────
+  // On Sat/Sun the two workouts stack under a "90 min of workout" parent.
+  // We physically move the existing workout-item elements into the weekend
+  // container so their listeners and notes stay attached.
+  function isWeekendDay(dow) { return dow === 0 || dow === 6; }
+
+  function applyWeekendWorkoutLayout(w) {
+    document.getElementById('w1emoji').textContent = w.emoji;
+    document.getElementById('w1label').textContent = 'Session 1 — 45 min';
+    document.getElementById('w1sub').textContent = w.label;
+    document.getElementById('w2label').textContent = 'Session 2 — 45 min';
+    document.getElementById('w2sub').textContent = 'Split however — outdoor or indoor';
+    const weekendChildren = document.getElementById('weekendChildren');
+    const w1 = document.querySelector('.workout-item[data-workout="1"]');
+    const w2 = document.querySelector('.workout-item[data-workout="2"]');
+    if (w1) weekendChildren.appendChild(w1);
+    if (w2) weekendChildren.appendChild(w2);
+    document.getElementById('weekendWorkouts').hidden = false;
+  }
+
+  function applyWeekdayWorkoutLayout(w, dow) {
+    document.getElementById('w1emoji').textContent = w.emoji;
+    document.getElementById('w1label').textContent = 'Workout #1 — ' + w.label;
+    document.getElementById('w1sub').textContent = w.sub;
+    document.getElementById('w2label').textContent = 'Workout #2 — 45 min outdoor';
+    if (dow === 4) {
+      document.getElementById('w2sub').textContent = '5:00–5:45pm · before improv at 7pm';
+    } else if (dow === 1) {
+      document.getElementById('w2sub').textContent = 'Walk to Chipotle + back after violin · 6:30pm';
+    } else {
+      document.getElementById('w2sub').textContent = 'Leave ~7:15pm · must be continuous 45 min';
+    }
+    // Restore positions: w1 before #weekendWorkouts in Morning, w2 before dinner in Evening.
+    const w1 = document.querySelector('.workout-item[data-workout="1"]');
+    const w2 = document.querySelector('.workout-item[data-workout="2"]');
+    const weekendBlock = document.getElementById('weekendWorkouts');
+    if (w1 && weekendBlock) weekendBlock.parentElement.insertBefore(w1, weekendBlock);
+    const dinnerItem = document.querySelector('.check-item[data-key="dinner"]');
+    if (w2 && dinnerItem) dinnerItem.parentElement.insertBefore(w2, dinnerItem);
+    document.getElementById('weekendWorkouts').hidden = true;
+  }
+
+  // Parent's checked state + progress sub derive from the two children's done.
+  function updateWeekendParentState() {
+    const parent = document.getElementById('weekendParent');
+    if (!parent) return;
+    const d1 = !!currentDay.workouts[1].done;
+    const d2 = !!currentDay.workouts[2].done;
+    const done = (d1 ? 1 : 0) + (d2 ? 1 : 0);
+    parent.classList.toggle('checked', done === 2);
+    const sub = document.getElementById('weekendParentSub');
+    if (sub) sub.textContent = `${done * 45} / 90 min · split however`;
+  }
+
+  // User clicked the "90 min of workout" parent: cascade both children.
+  function toggleWeekendWorkoutParent() {
+    if (isFuture(viewDate)) return;
+    const both = currentDay.workouts[1].done && currentDay.workouts[2].done;
+    const next = !both;
+    const key = dateKey(viewDate);
+    [1, 2].forEach((slot) => {
+      if (currentDay.workouts[slot].done !== next) {
+        currentDay.workouts[slot].done = next;
+        persist(setWorkoutDone(key, slot, next, 'cascade'));
+      }
+    });
+    document.querySelectorAll('.workout-item[data-workout]').forEach((item) => {
+      item.classList.toggle('checked', next);
+    });
+    const parent = document.getElementById('weekendParent');
+    if (parent) {
+      parent.classList.toggle('checked', next);
+      if (next) spawnBurst(parent);
+    }
+    updateWeekendParentState();
+    updateDailyProgress();
+    renderStreakBar();
   }
 
   const VITAMINS = ['b12', 'iron', 'd3', 'magnesium'];
@@ -547,6 +621,8 @@ import { onAuthChange, signIn, signOut, getCurrentUser } from './auth.js';
     // Delegated checklist toggles (Today panel)
     document.getElementById('panel-today').addEventListener('click', (e) => {
       if (e.target.closest('.item-note-input') || e.target.closest('.note-toggle')) return;
+      const wparent = e.target.closest('.weekend-workout-parent');
+      if (wparent) { toggleWeekendWorkoutParent(); return; }
       const vchild = e.target.closest('.vitamin-child[data-vitamin]');
       if (vchild) { toggleVitamin(vchild.dataset.vitamin); return; }
       const item = e.target.closest('.check-item[data-key]');

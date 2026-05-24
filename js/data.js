@@ -94,10 +94,10 @@ export async function setCheck(dateKey, key, value, via = 'direct') {
   }, { merge: true });
 }
 
-export async function setWorkoutDone(dateKey, slot, done) {
+export async function setWorkoutDone(dateKey, slot, done, via = 'direct') {
   await setDoc(dayRef(dateKey), {
     workouts: { [slot]: { done } },
-    events: arrayUnion(ev('check', dateKey, { key: 'workout' + slot, value: done, via: 'direct' })),
+    events: arrayUnion(ev('check', dateKey, { key: 'workout' + slot, value: done, via })),
     updatedAt: serverTimestamp(),
   }, { merge: true });
 }

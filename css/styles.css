@@ -783,6 +783,21 @@
   .vitamin-child em { font-style: normal; color: var(--text-dim); }
   body.future-view .vitamin-children { opacity: 0.4; pointer-events: none; }
 
+  /* Weekend stacked workouts — parent + 2 indented children (Sat/Sun only) */
+  .weekend-workouts { margin-bottom: 6px; }
+  .weekend-workout-parent {
+    background: var(--bg3);
+  }
+  .weekend-workout-parent .check-label { font-weight: 500; }
+  .weekend-workout-parent .sub { color: var(--accent3); }
+  .weekend-workout-parent.checked .sub { color: var(--text-muted); }
+  .weekend-children {
+    margin: -4px 0 6px 18px;
+    border-left: 2px solid var(--border2);
+    padding: 4px 0 0 14px;
+  }
+  .weekend-children .check-item { margin-bottom: 6px; }
+
   /* Notes */
   .notes-area {
     width: 100%;

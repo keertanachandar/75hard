@@ -1,6 +1,6 @@
 // Bump this version string whenever any cached asset changes, so the
 // activate handler purges the old cache and users get the new files.
-const CACHE = '75hard-v7';
+const CACHE = '75hard-v8';
 const ASSETS = [
   './', './index.html', './css/styles.css',
   './js/app.js', './js/data.js', './js/auth.js', './js/config.js',
