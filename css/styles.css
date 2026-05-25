@@ -902,6 +902,8 @@
     border-color: var(--checked-border);
     color: var(--text);
   }
+  /* The [hidden] attribute must win over the display:flex rule above. */
+  .weekend-override-toggle[hidden] { display: none; }
 
   /* Future day: surface the Notes section (the only editable thing) at the top */
   body.future-view #panel-today.active {
